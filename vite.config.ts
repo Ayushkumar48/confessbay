@@ -4,6 +4,7 @@ import { paraglideVitePlugin } from '@inlang/paraglide-js';
 import devtoolsJson from 'vite-plugin-devtools-json';
 import tailwindcss from '@tailwindcss/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
+import { webSocketServer } from './ws-server/ws-plugin-vite';
 
 export default defineConfig({
 	plugins: [
@@ -13,7 +14,8 @@ export default defineConfig({
 		paraglideVitePlugin({
 			project: './project.inlang',
 			outdir: './src/lib/paraglide'
-		})
+		}),
+		webSocketServer
 	],
 	test: {
 		expect: { requireAssertions: true },

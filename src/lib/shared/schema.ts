@@ -153,9 +153,6 @@ export const chats = pgTable(
 		senderId: text('sender_id')
 			.notNull()
 			.references(() => user.id, { onDelete: 'cascade' }),
-		receiverId: text('receiver_id')
-			.notNull()
-			.references(() => user.id, { onDelete: 'cascade' }),
 		conversationId: text('conversation_id').notNull(),
 		message: text('message').notNull(),
 		iv: text('iv').notNull(),
@@ -177,7 +174,6 @@ export const chats = pgTable(
 	(table) => [
 		index('idx_chats_conversation').on(table.conversationId),
 		index('idx_chats_sender').on(table.senderId),
-		index('idx_chats_receiver').on(table.receiverId),
 		index('idx_chats_created_at').on(table.createdAt),
 		index('idx_chats_readat').on(table.readAt)
 	]

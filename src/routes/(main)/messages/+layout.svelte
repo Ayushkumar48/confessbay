@@ -26,7 +26,7 @@
 
 <div class="flex h-[calc(100vh-4rem)]">
 	<aside class="flex w-1/3 max-w-[380px] min-w-[260px] flex-col border-r border-accent-foreground">
-		<div class="flex items-center gap-3 border-b border-border px-4 py-3">
+		<div class="flex items-center gap-3 border-b border-border px-4 py-1.5">
 			<div class="flex-1">
 				<h2 class="text-lg font-semibold">Messages</h2>
 				<p class="text-xs text-foreground/60">Recent</p>

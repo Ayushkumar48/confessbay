@@ -1,7 +1,7 @@
-import { ENCRYPTION_KEY } from '$env/static/private';
 import crypto from 'crypto';
 
 const ALGORITHM = 'aes-256-gcm';
+const ENCRYPTION_KEY = crypto.scryptSync(process.env.ENCRYPTION_KEY!, 'salt', 32);
 
 export function encryptMessage(message: string) {
 	const iv = crypto.randomBytes(12);

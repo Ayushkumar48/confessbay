@@ -1,9 +1,10 @@
 import { getRequestEvent, query } from '$app/server';
+import { chatsInsertSchema } from '$lib/client/schema';
 import { db } from '$lib/server/db';
+import { decryptMessage } from '$lib/server/encryption-utils';
 import { getOtherUser } from '$lib/server/utils';
-import { conversations } from '$lib/shared';
-import { fail } from '@sveltejs/kit';
-import { and, eq } from 'drizzle-orm';
+import { chats, conversations } from '$lib/shared';
+import { and, asc, eq } from 'drizzle-orm';
 import z from 'zod';
 
 export const getConversation = query(
@@ -90,3 +91,18 @@ export const getConversationForChat = query(
 		return { success: true, conversation: res.conversation, currentChatUser };
 	}
 );
+
+export const storeChat = query(chatsInsertSchema, async (input) => {
+	await db.insert(chats).values(input);
+});
+
+export const getMessagesWithChatId = query(z.object({ chatId: z.string() }), async (input) => {
+	return (
+		await db
+			.select()
+			.from(chats)
+			.where(eq(chats.conversationId, input.chatId))
+			.orderBy(asc(chats.createdAt))
+			.limit(40)
+	).map((m) => ({ ...m, message: decryptMessage(m.message, m.iv, m.authTag) }));
+});

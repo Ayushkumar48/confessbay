@@ -71,18 +71,33 @@ const confessionsInsertSchema = createInsertSchema(table.confessions, {
 		.optional()
 });
 
+const chatsInsertSchema = createInsertSchema(table.chats, {
+	deliveredAt: z.coerce.date().nullable().optional(),
+	readAt: z.coerce.date().nullable().optional(),
+	createdAt: z.coerce.date(),
+	updatedAt: z.coerce.date()
+});
+
 const repliesInsertSchema = createInsertSchema(table.replies);
 
 type UserSelectSchema = typeof userSelectSchema;
 type UserInsertSchema = typeof userInsertSchema;
 type ConfessionsInsertSchema = typeof confessionsInsertSchema;
 type RepliesInsertSchema = typeof repliesInsertSchema;
+type ChatsInsertSchema = typeof chatsInsertSchema;
 
 export {
 	userSelectSchema,
 	userInsertSchema,
 	friendsSelectSchema,
 	confessionsInsertSchema,
-	repliesInsertSchema
+	repliesInsertSchema,
+	chatsInsertSchema
 };
-export type { UserSelectSchema, UserInsertSchema, ConfessionsInsertSchema, RepliesInsertSchema };
+export type {
+	UserSelectSchema,
+	UserInsertSchema,
+	ConfessionsInsertSchema,
+	RepliesInsertSchema,
+	ChatsInsertSchema
+};
