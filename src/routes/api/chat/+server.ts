@@ -1,14 +1,21 @@
 import { json } from '@sveltejs/kit';
 import { chatsInsertSchema } from '$lib/client/schema';
 import { db } from '$lib/server/db';
-import { chats } from '$lib/shared';
+import { chats, conversations } from '$lib/shared';
+import { eq } from 'drizzle-orm';
 
 export async function POST({ request }) {
 	try {
 		const body = await request.json();
 		const msg = chatsInsertSchema.parse(body);
-
 		await db.insert(chats).values(msg);
+		await db
+			.update(conversations)
+			.set({
+				lastMessage: msg.message,
+				lastMessageAt: msg.deliveredAt
+			})
+			.where(eq(conversations.id, msg.conversationId));
 		return json({ success: true });
 	} catch (err) {
 		console.error('Error storing chat:', err);

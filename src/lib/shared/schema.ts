@@ -189,11 +189,7 @@ export const conversations = pgTable(
 		userId2: text('user_id2')
 			.notNull()
 			.references(() => user.id, { onDelete: 'cascade' }),
-		lastMessage: text('last_message'),
-		lastMessageAt: timestamp('last_message_at', {
-			withTimezone: true,
-			mode: 'date'
-		}),
+		lastMessageId: text('last_message_id').references(() => chats.id, { onDelete: 'cascade' }),
 		unreadCountForUser1: integer('unread_count_user1').default(0).notNull(),
 		unreadCountForUser2: integer('unread_count_user2').default(0).notNull(),
 		isArchivedByUser1: boolean('is_archived_user1').default(false).notNull(),
@@ -211,8 +207,7 @@ export const conversations = pgTable(
 	},
 	(table) => [
 		uniqueIndex('unique_conversation_pair').on(table.userId1, table.userId2),
-		check('conversation_id_order', sql`user_id1 < user_id2`),
-		index('idx_conversation_updated').on(table.lastMessageAt)
+		check('conversation_id_order', sql`user_id1 < user_id2`)
 	]
 );
 
@@ -263,7 +258,7 @@ export const notifications = pgTable('notifications', {
 	entityId: text('entity_id'),
 	message: text('message'),
 	isRead: boolean('is_read').default(false),
-	createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow()
+	createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow().notNull()
 });
 
 export const followers = pgTable(

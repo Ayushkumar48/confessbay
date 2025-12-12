@@ -75,13 +75,13 @@
 										<div class="flex items-center gap-2">
 											<p class="truncate text-sm font-medium">{getDisplayName(chat.otherUser)}</p>
 											<span class="truncate text-xs text-foreground/60"
-												>{chat.conversation.lastMessageAt
-													? getTimeAgo(new Date(chat.conversation.lastMessageAt))
+												>{chat.lastMessage.createdAt
+													? getTimeAgo(new Date(chat.lastMessage.createdAt))
 													: ''}</span
 											>
 										</div>
 										<p class="mt-1 truncate text-xs text-foreground/60">
-											{chat.conversation.lastMessage || 'No messages yet'}
+											{chat.lastMessage.message || 'No messages yet'}
 										</p>
 									</div>
 									<div>

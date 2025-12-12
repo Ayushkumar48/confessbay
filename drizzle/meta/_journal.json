@@ -15,6 +15,20 @@
       "when": 1765515266224,
       "tag": "0001_redundant_doctor_faustus",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1765546281468,
+      "tag": "0002_lazy_professor_monster",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1765547001271,
+      "tag": "0003_flashy_crusher_hogan",
+      "breakpoints": true
     }
   ]
 }
