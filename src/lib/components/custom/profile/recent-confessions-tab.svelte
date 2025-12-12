@@ -147,7 +147,6 @@
 									</div>
 									<div class="flex items-center gap-2">
 										<Button size="sm" href={resolve(`/u/${f.user.username}`)}>View</Button>
-										<Button size="sm" variant="secondary">Follow</Button>
 									</div>
 								</div>
 							</li>

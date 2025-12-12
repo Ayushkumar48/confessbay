@@ -40,12 +40,9 @@ export default function injectSocketIO(server: HTTPServer) {
 	io.on('connection', (socket) => {
 		const userId = socket.data.userId; // SAFE & VERIFIED
 
-		console.log('Socket connected:', userId);
-
 		// JOIN ROOM
 		socket.on('join', (chatId) => {
 			socket.join(chatId);
-			console.log(`User ${userId} joined room ${chatId}`);
 		});
 
 		// HANDLE MESSAGES
@@ -78,6 +75,4 @@ export default function injectSocketIO(server: HTTPServer) {
 			});
 		});
 	});
-
-	console.log('Socket.IO initialized');
 }

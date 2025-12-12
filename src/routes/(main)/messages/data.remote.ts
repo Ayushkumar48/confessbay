@@ -46,6 +46,5 @@ export const getConversations = query(z.object({ userId: z.string() }), async ({
 			};
 		})
 	);
-	console.log(withAvatars);
 	return withAvatars;
 });

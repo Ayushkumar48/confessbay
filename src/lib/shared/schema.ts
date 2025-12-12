@@ -199,11 +199,15 @@ export const conversations = pgTable(
 		createdAt: timestamp('created_at', {
 			withTimezone: true,
 			mode: 'date'
-		}).defaultNow(),
+		})
+			.defaultNow()
+			.notNull(),
 		updatedAt: timestamp('updated_at', {
 			withTimezone: true,
 			mode: 'date'
-		}).defaultNow()
+		})
+			.defaultNow()
+			.notNull()
 	},
 	(table) => [
 		uniqueIndex('unique_conversation_pair').on(table.userId1, table.userId2),

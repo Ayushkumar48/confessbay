@@ -56,7 +56,7 @@
 					<li>
 						<a
 							href={resolve(`/messages/${chat.conversation.id}`)}
-							class="flex w-full cursor-pointer items-center gap-3 px-4 py-3 transition-colors hover:bg-accent/5"
+							class="flex w-full cursor-pointer items-center gap-3 px-4 py-3 transition-colors hover:bg-accent/50 hover:ring-[0.1px]"
 						>
 							<Avatar class="flex-none">
 								{#if chat.otherUser.avatar}
@@ -74,11 +74,11 @@
 									<div class="min-w-0">
 										<div class="flex items-center gap-2">
 											<p class="truncate text-sm font-medium">{getDisplayName(chat.otherUser)}</p>
-											<span class="truncate text-xs text-foreground/60"
-												>{chat.lastMessage.createdAt
+											<span class="truncate text-xs text-foreground/60">
+												{chat.lastMessage.createdAt
 													? getTimeAgo(new Date(chat.lastMessage.createdAt))
-													: ''}</span
-											>
+													: ''}
+											</span>
 										</div>
 										<p class="mt-1 truncate text-xs text-foreground/60">
 											{chat.lastMessage.message || 'No messages yet'}

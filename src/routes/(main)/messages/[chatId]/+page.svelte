@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { Avatar, AvatarFallback, AvatarImage } from '$lib/components/ui/avatar';
 	import { Button } from '$lib/components/ui/button';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import Send from '@lucide/svelte/icons/send';
@@ -7,12 +6,13 @@
 	import Camera from '@lucide/svelte/icons/camera';
 	import MoreVertical from '@lucide/svelte/icons/more-vertical';
 	import { page } from '$app/state';
-	import { cn, getDisplayName, getInitials, getTimeAgo } from '$lib/utils.js';
+	import { cn, getTimeAgo } from '$lib/utils.js';
 	import { getConversationForChat, getMessagesWithChatId } from './data.remote.js';
 	import { createSocket } from '../../../../lib/ws-connection';
 	import type { ChatsInsertSchema } from '$lib/client/schema.js';
 	import type z from 'zod';
 	import { onMount } from 'svelte';
+	import AvatarDropdown from '$lib/components/custom/messages/chat/avatar-dropdown.svelte';
 	const io = createSocket(page.params.chatId!);
 
 	type Message = z.infer<ChatsInsertSchema>;
@@ -24,7 +24,6 @@
 
 	let newMessage = $state('');
 
-	const nameOfUser = $derived(getInitials(getDisplayName(currentChatUser)));
 	let messages = $derived<Message[]>(await getMessagesWithChatId({ chatId: page.params.chatId! }));
 	$effect(() => {
 		if (messagesContainer && messages && messages.length > 0) {
@@ -63,18 +62,9 @@
 
 <main class="flex flex-1 flex-col">
 	<div class="flex items-center justify-between gap-3 border-b border-border px-6 py-2">
-		<div class="flex min-w-0 items-center gap-3">
-			<Avatar>
-				<AvatarImage src={currentChatUser?.avatar ?? ''} alt="User avatar" />
-				<AvatarFallback>
-					{nameOfUser}
-				</AvatarFallback>
-			</Avatar>
-			<div class="min-w-0">
-				<p class="truncate font-medium">{nameOfUser}</p>
-				<p class="truncate text-xs text-foreground/60">Online</p>
-			</div>
-		</div>
+		{#if currentChatUser && conversation}
+			<AvatarDropdown {currentChatUser} {conversation} />
+		{/if}
 
 		<div class="flex items-center gap-2">
 			<Button variant="ghost" size="icon" aria-label="Attach">
