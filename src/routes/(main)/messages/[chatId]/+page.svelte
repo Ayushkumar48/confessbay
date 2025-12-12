@@ -123,10 +123,10 @@
 </main>
 
 {#snippet message(m: Message)}
-	<div class={m.senderId === page.data.user.id ? 'flex justify-end' : 'flex justify-start'}>
+	<div class={cn('flex', m.senderId === page.data.user.id ? 'justify-end' : 'justify-start')}>
 		<div
 			class={cn(
-				'max-w-[70%] rounded-lg px-4 py-2',
+				'max-w-[50vw] rounded-lg px-4 py-2',
 				m.senderId === page.data.user.id ? 'bg-accent text-white' : 'bg-muted/10 text-foreground/90'
 			)}
 		>
