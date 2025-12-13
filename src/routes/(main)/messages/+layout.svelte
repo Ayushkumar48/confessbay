@@ -7,11 +7,9 @@
 	import MessageCircle from '@lucide/svelte/icons/message-circle';
 	import { resolve } from '$app/paths';
 	import { getDisplayName, getInitials, getTimeAgo } from '$lib/utils.js';
-	import { getConversations } from './data.remote.js';
-	import { page } from '$app/state';
 
 	let { children, data } = $props();
-	const conversations = $derived(await getConversations({ userId: page.data.user.id }));
+	const conversations = $derived(data.conversations);
 
 	let q = $state('');
 

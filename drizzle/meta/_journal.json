@@ -36,6 +36,13 @@
       "when": 1765556004814,
       "tag": "0004_cultured_silver_samurai",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1765635699504,
+      "tag": "0005_slimy_songbird",
+      "breakpoints": true
     }
   ]
 }

@@ -78,6 +78,11 @@ const chatsInsertSchema = createInsertSchema(table.chats, {
 	updatedAt: z.coerce.date()
 });
 
+const conversationsInsertSchema = createInsertSchema(table.conversations, {
+	createdAt: z.coerce.date(),
+	updatedAt: z.coerce.date()
+});
+
 const repliesInsertSchema = createInsertSchema(table.replies);
 
 type UserSelectSchema = typeof userSelectSchema;
@@ -92,7 +97,8 @@ export {
 	friendsSelectSchema,
 	confessionsInsertSchema,
 	repliesInsertSchema,
-	chatsInsertSchema
+	chatsInsertSchema,
+	conversationsInsertSchema
 };
 export type {
 	UserSelectSchema,

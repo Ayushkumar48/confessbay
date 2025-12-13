@@ -1,0 +1,2 @@
+ALTER TABLE "conversations" ADD COLUMN "is_blocked_user1" boolean DEFAULT false NOT NULL;--> statement-breakpoint
+ALTER TABLE "conversations" ADD COLUMN "is_blocked_user2" boolean DEFAULT false NOT NULL;

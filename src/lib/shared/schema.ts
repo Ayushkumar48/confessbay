@@ -196,6 +196,8 @@ export const conversations = pgTable(
 		isArchivedByUser2: boolean('is_archived_user2').default(false).notNull(),
 		isMutedByUser1: boolean('is_muted_user1').default(false).notNull(),
 		isMutedByUser2: boolean('is_muted_user2').default(false).notNull(),
+		isBlockedByUser1: boolean('is_blocked_user1').default(false).notNull(),
+		isBlockedByUser2: boolean('is_blocked_user2').default(false).notNull(),
 		createdAt: timestamp('created_at', {
 			withTimezone: true,
 			mode: 'date'

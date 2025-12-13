@@ -5,26 +5,38 @@
 	import Paperclip from '@lucide/svelte/icons/paperclip';
 	import Camera from '@lucide/svelte/icons/camera';
 	import MoreVertical from '@lucide/svelte/icons/more-vertical';
+	import BanIcon from '@lucide/svelte/icons/ban';
+	import ShieldIcon from '@lucide/svelte/icons/shield';
 	import { page } from '$app/state';
-	import { cn, getTimeAgo } from '$lib/utils.js';
-	import { getConversationForChat, getMessagesWithChatId } from './data.remote.js';
+	import { cn, getTimeAgo, getDisplayName } from '$lib/utils.js';
 	import { createSocket } from '../../../../lib/ws-connection';
 	import type { ChatsInsertSchema } from '$lib/client/schema.js';
 	import type z from 'zod';
 	import { onMount } from 'svelte';
 	import AvatarDropdown from '$lib/components/custom/messages/chat/avatar-dropdown.svelte';
+	import type { Chat } from '$lib/shared/schema.js';
 	const io = createSocket(page.params.chatId!);
 
 	type Message = z.infer<ChatsInsertSchema>;
 
 	let messagesContainer: HTMLDivElement | undefined = $state();
-	const { currentChatUser, conversation } = $derived(
-		await getConversationForChat({ chatId: page.params.chatId })
-	);
+
+	const { data } = $props();
+
+	let { currentChatUser, conversation, messages } = $derived(data);
 
 	let newMessage = $state('');
 
-	let messages = $derived<Message[]>(await getMessagesWithChatId({ chatId: page.params.chatId! }));
+	const currentUserId = $derived(page.data.user?.id);
+	const isUser1 = $derived(currentUserId === conversation?.userId1);
+	const isBlocked = $derived(
+		isUser1 ? conversation?.isBlockedByUser1 : conversation?.isBlockedByUser2
+	);
+	const isBlockedByOther = $derived(
+		isUser1 ? conversation?.isBlockedByUser2 : conversation?.isBlockedByUser1
+	);
+	const canSendMessages = $derived(!isBlocked && !isBlockedByOther);
+
 	$effect(() => {
 		if (messagesContainer && messages && messages.length > 0) {
 			setTimeout(() => {
@@ -34,7 +46,7 @@
 	});
 
 	onMount(() => {
-		const handler = (message: z.infer<ChatsInsertSchema>) => {
+		const handler = (message: Chat) => {
 			messages = [...messages, message];
 		};
 		io.on('message', handler);
@@ -50,6 +62,7 @@
 	}
 
 	function sendMessage() {
+		if (!canSendMessages) return;
 		const message = newMessage.trim();
 		if (!message) return;
 		io.emit('message', {
@@ -63,7 +76,7 @@
 <main class="flex flex-1 flex-col">
 	<div class="flex items-center justify-between gap-3 border-b border-border px-6 py-2">
 		{#if currentChatUser && conversation}
-			<AvatarDropdown {currentChatUser} {conversation} />
+			<AvatarDropdown {currentChatUser} bind:conversation {io} />
 		{/if}
 
 		<div class="flex items-center gap-2">
@@ -93,22 +106,47 @@
 	</div>
 
 	<div class="border-t border-border px-4 py-3">
-		<div class="flex items-center gap-3">
-			<Input
-				placeholder="Type a message"
-				bind:value={newMessage}
-				class="flex-1"
-				onkeydown={(e) => {
-					if (e.key === 'Enter') {
-						e.preventDefault();
-						sendMessage();
-					}
-				}}
-			/>
-			<Button variant="ghost" size="icon" aria-label="Send" onclick={sendMessage}>
-				<Send class="size-5 text-foreground/90" />
-			</Button>
-		</div>
+		{#if isBlocked}
+			<div class="flex items-center justify-center gap-2 py-2 text-red-600 dark:text-red-400">
+				<BanIcon class="h-4 w-4" />
+				<span class="text-sm font-medium">
+					You blocked {currentChatUser ? getDisplayName(currentChatUser) : 'this user'}. Unblock to
+					send messages.
+				</span>
+			</div>
+		{:else if isBlockedByOther}
+			<div class="flex items-center justify-center gap-2 py-2 text-amber-600 dark:text-amber-400">
+				<ShieldIcon class="h-4 w-4" />
+				<span class="text-sm font-medium">
+					{currentChatUser ? getDisplayName(currentChatUser) : 'This user'} has blocked you. You cannot
+					send messages.
+				</span>
+			</div>
+		{:else}
+			<div class="flex items-center gap-3">
+				<Input
+					placeholder="Type a message"
+					bind:value={newMessage}
+					class="flex-1"
+					disabled={!canSendMessages}
+					onkeydown={(e) => {
+						if (e.key === 'Enter') {
+							e.preventDefault();
+							sendMessage();
+						}
+					}}
+				/>
+				<Button
+					variant="ghost"
+					size="icon"
+					aria-label="Send"
+					onclick={sendMessage}
+					disabled={!canSendMessages}
+				>
+					<Send class="size-5 text-foreground/90" />
+				</Button>
+			</div>
+		{/if}
 	</div>
 </main>
 
