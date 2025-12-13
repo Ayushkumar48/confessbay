@@ -5,14 +5,9 @@
 	import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
 	import { useSidebar } from '$lib/components/ui/sidebar/context.svelte';
 	import { cn } from '$lib/utils.js';
-	import { getConfessionPosts } from './data.remote.js';
 
-	let { data } = $props();
-	let confessionPosts = $derived(
-		await getConfessionPosts({
-			userId: data.user?.id
-		})
-	);
+	const { data } = $props();
+	let confessionPosts = $derived(data.confessionPosts);
 	const sidebar = useSidebar();
 </script>
 

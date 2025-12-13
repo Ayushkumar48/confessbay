@@ -11,26 +11,23 @@
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import ConfessionCard from '$lib/components/confession-card.svelte';
-	import {
-		getMyConfessionPosts,
-		getUserFollowers,
-		getUserFollowings,
-		getUserFriends
-	} from '../../../../routes/(main)/profile/data.remote';
+	import type { ConfessionWithToAndFrom, Friends, User, Followers } from '$lib/shared';
 
-	const allConfessions = $derived(await getMyConfessionPosts({ userId: page.data.user.id }));
-	const allFriends = $derived(
-		(await getUserFriends({ username: page.data.user.username })).friends
-	);
+	let {
+		allConfessions,
+		allFriends,
+		followers,
+		following
+	}: {
+		allConfessions: ConfessionWithToAndFrom[];
+		allFriends?: { friends: Friends; user: User }[];
+		followers?: { followers: Followers; user: User }[];
+		following?: { following: Followers; user: User }[];
+	} = $props();
+
 	const friends = $derived(allFriends?.filter((friend) => friend.friends.status === 'accepted'));
 	let pendingFriendRequests = $derived(
 		allFriends?.filter((friend) => friend.friends.status === 'pending')
-	);
-	const followers = $derived(
-		(await getUserFollowers({ username: page.data.user.username })).followers
-	);
-	const following = $derived(
-		(await getUserFollowings({ username: page.data.user.username })).followings
 	);
 
 	let currentRoute = $derived(page.url.pathname);

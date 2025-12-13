@@ -1,6 +1,6 @@
 import { encodeBase32LowerCase } from '@oslojs/encoding';
 import { clsx, type ClassValue } from 'clsx';
-import { format, parseISO, formatDistanceToNow } from 'date-fns';
+import { format, parseISO, formatDistanceToNow, isToday, isYesterday, isThisWeek } from 'date-fns';
 import { twMerge } from 'tailwind-merge';
 import {
 	adjectives,
@@ -49,6 +49,32 @@ export function getInitials(name: string) {
  */
 export function getTimeAgo(date: Date): string {
 	return formatDistanceToNow(new Date(date), { addSuffix: true });
+}
+
+/**
+ * getWhatsAppTime
+ * Returns a WhatsApp-style time format for chat messages.
+ * - Shows time (e.g., "10:07 am") if today
+ * - Shows "Yesterday" if yesterday
+ * - Shows day name (e.g., "Tuesday") if within this week
+ * - Shows date (e.g., "12/25/2024") if older
+ */
+export function getWhatsAppTime(date: Date | string): string {
+	const d = typeof date === 'string' ? new Date(date) : date;
+
+	if (isToday(d)) {
+		return format(d, 'h:mm a');
+	}
+
+	if (isYesterday(d)) {
+		return 'Yesterday';
+	}
+
+	if (isThisWeek(d, { weekStartsOn: 0 })) {
+		return format(d, 'EEEE');
+	}
+
+	return format(d, 'M/d/yyyy');
 }
 
 /**

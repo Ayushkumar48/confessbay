@@ -23,13 +23,12 @@
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { buttonVariants } from '$lib/components/ui/button';
 	import { onMount } from 'svelte';
-	import type { Socket } from 'socket.io-client';
+	import { socketConnection } from '$lib/ws-connection';
 
 	let {
 		currentChatUser,
-		conversation = $bindable(),
-		io
-	}: { currentChatUser: User; conversation: Conversation; io: Socket } = $props();
+		conversation = $bindable()
+	}: { currentChatUser: User; conversation: Conversation } = $props();
 
 	const displayName = $derived(getDisplayName(currentChatUser));
 	const initials = $derived(getInitials(displayName));
@@ -84,13 +83,13 @@
 		const handler = (c: Conversation) => {
 			conversation = c;
 		};
-		io.on('chat-stats', handler);
+		socketConnection.on('chat-stats', handler);
 		return () => {
-			io.off('chat-stats', handler);
+			socketConnection.off('chat-stats', handler);
 		};
 	});
 	function emitChatStats(action: string) {
-		io.emit('chat-stats', { conversation, action });
+		socketConnection.emit('chat-stats', { conversation, action });
 	}
 </script>
 

@@ -5,14 +5,18 @@ import { fail, redirect } from '@sveltejs/kit';
 import { message, superValidate } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
 import { logout } from '../../(auth)/login/data.remote.js';
-import { newConfessionPost } from './data.remote.js';
+import { getConfessionPosts, newConfessionPost } from './data.remote.js';
 
 export async function load({ locals }) {
 	if (!locals.user) {
 		redirect(308, resolve('/login'));
 	}
+	const confessionPosts = await getConfessionPosts({
+		userId: locals.user.id
+	});
 	return {
-		form: await superValidate(zod4(confessionsInsertSchema))
+		form: await superValidate(zod4(confessionsInsertSchema)),
+		confessionPosts
 	};
 }
 

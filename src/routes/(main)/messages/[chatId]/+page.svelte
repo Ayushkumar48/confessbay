@@ -7,15 +7,16 @@
 	import MoreVertical from '@lucide/svelte/icons/more-vertical';
 	import BanIcon from '@lucide/svelte/icons/ban';
 	import ShieldIcon from '@lucide/svelte/icons/shield';
+	import Check from '@lucide/svelte/icons/check';
 	import { page } from '$app/state';
-	import { cn, getTimeAgo, getDisplayName } from '$lib/utils.js';
-	import { createSocket } from '../../../../lib/ws-connection';
+	import { cn, getDisplayName } from '$lib/utils.js';
+	import { socketConnection } from '../../../../lib/ws-connection';
 	import type { ChatsInsertSchema } from '$lib/client/schema.js';
 	import type z from 'zod';
 	import { onMount } from 'svelte';
 	import AvatarDropdown from '$lib/components/custom/messages/chat/avatar-dropdown.svelte';
 	import type { Chat } from '$lib/shared/schema.js';
-	const io = createSocket(page.params.chatId!);
+	import { format } from 'date-fns';
 
 	type Message = z.infer<ChatsInsertSchema>;
 
@@ -46,12 +47,14 @@
 	});
 
 	onMount(() => {
+		socketConnection.joinRoom(page.params.chatId!);
 		const handler = (message: Chat) => {
 			messages = [...messages, message];
 		};
-		io.on('message', handler);
+		socketConnection.on('message', handler);
 		return () => {
-			io.off('message', handler);
+			socketConnection.off('message', handler);
+			socketConnection.leaveRoom(page.params.chatId!);
 		};
 	});
 
@@ -65,7 +68,7 @@
 		if (!canSendMessages) return;
 		const message = newMessage.trim();
 		if (!message) return;
-		io.emit('message', {
+		socketConnection.emit('message', {
 			chatId: page.params.chatId,
 			message
 		});
@@ -76,7 +79,7 @@
 <main class="flex flex-1 flex-col">
 	<div class="flex items-center justify-between gap-3 border-b border-border px-6 py-2">
 		{#if currentChatUser && conversation}
-			<AvatarDropdown {currentChatUser} bind:conversation {io} />
+			<AvatarDropdown {currentChatUser} bind:conversation />
 		{/if}
 
 		<div class="flex items-center gap-2">
@@ -160,8 +163,11 @@
 		>
 			<p class="text-sm wrap-break-word">{m.message}</p>
 			{#if m.createdAt}
-				<div class="mt-1 text-right text-xs text-foreground/60">
-					{getTimeAgo(m.createdAt)}
+				<div class="mt-1 flex items-center justify-end gap-1 text-xs text-foreground/60">
+					<span>{format(m.createdAt, 'h:mm a')}</span>
+					{#if m.senderId === page.data.user.id}
+						<Check class={cn('size-3', m.readAt ? 'text-blue-500' : 'text-foreground/60')} />
+					{/if}
 				</div>
 			{/if}
 		</div>

@@ -5,11 +5,16 @@
 	import Search from '@lucide/svelte/icons/search';
 	import MoreVertical from '@lucide/svelte/icons/more-vertical';
 	import MessageCircle from '@lucide/svelte/icons/message-circle';
+	import BellOff from '@lucide/svelte/icons/bell-off';
+	import Check from '@lucide/svelte/icons/check';
 	import { resolve } from '$app/paths';
-	import { getDisplayName, getInitials, getTimeAgo } from '$lib/utils.js';
+	import { cn, getDisplayName, getInitials, getWhatsAppTime } from '$lib/utils.js';
+	import { onMount } from 'svelte';
+	import { socketConnection } from '$lib/ws-connection';
+	import type { Conversation } from '$lib/shared';
 
 	let { children, data } = $props();
-	const conversations = $derived(data.conversations);
+	let conversations = $derived(data.conversations);
 
 	let q = $state('');
 
@@ -20,6 +25,17 @@
 				)
 			: conversations
 	);
+	onMount(() => {
+		const handler = (c: Conversation) => {
+			conversations = conversations.map((item) =>
+				item.conversation.id === c.id ? { ...item, conversation: c } : item
+			);
+		};
+		socketConnection.on('chat-stats', handler);
+		return () => {
+			socketConnection.off('chat-stats', handler);
+		};
+	});
 </script>
 
 <div class="flex h-[calc(100vh-4rem)]">
@@ -51,6 +67,17 @@
 		<div class="flex-1 overflow-y-auto">
 			<ul class="divide-y divide-border">
 				{#each filtered as chat (chat.otherUser.id)}
+					{@const displayName = getDisplayName(chat.otherUser)}
+					{@const initials = getInitials(displayName)}
+					{@const isUser1 = chat.conversation.userId1 === data.user.id}
+					{@const unreadCount = isUser1
+						? chat.conversation.unreadCountForUser1
+						: chat.conversation.unreadCountForUser2}
+					{@const isMuted = isUser1
+						? chat.conversation.isMutedByUser1
+						: chat.conversation.isMutedByUser2}
+					{@const isMyMessage = chat.lastMessage.senderId === data.user.id}
+					{@const isRead = chat.lastMessage.readAt !== null}
 					<li>
 						<a
 							href={resolve(`/messages/${chat.conversation.id}`)}
@@ -58,38 +85,55 @@
 						>
 							<Avatar class="flex-none">
 								{#if chat.otherUser.avatar}
-									<AvatarImage src={chat.otherUser.avatar} alt={getDisplayName(chat.otherUser)} />
-									<AvatarFallback>{getDisplayName(chat.otherUser).slice(0, 1)}</AvatarFallback>
+									<AvatarImage src={chat.otherUser.avatar} alt={displayName} />
+									<AvatarFallback>{initials}</AvatarFallback>
 								{:else}
 									<AvatarFallback>
-										{getInitials(getDisplayName(chat.otherUser))}
+										{initials}
 									</AvatarFallback>
 								{/if}
 							</Avatar>
-
 							<div class="w-full min-w-0 flex-1">
 								<div class="flex w-full items-center justify-between gap-2">
-									<div class="min-w-0">
-										<div class="flex items-center gap-2">
-											<p class="truncate text-sm font-medium">{getDisplayName(chat.otherUser)}</p>
-											<span class="truncate text-xs text-foreground/60">
-												{chat.lastMessage.createdAt
-													? getTimeAgo(new Date(chat.lastMessage.createdAt))
-													: ''}
-											</span>
+									<div class="min-w-0 w-full">
+										<div class="flex items-center gap-2 justify-between">
+											<p class="truncate text-sm font-medium" title={displayName}>
+												{displayName}
+											</p>
+											<div class="flex items-center gap-1">
+												<span class="text-xs text-foreground/60 text-nowrap">
+													{chat.lastMessage.createdAt
+														? getWhatsAppTime(chat.lastMessage.createdAt)
+														: ''}
+												</span>
+												{#if isMuted}
+													<BellOff class="size-3.5 text-foreground/60" />
+												{/if}
+											</div>
 										</div>
-										<p class="mt-1 truncate text-xs text-foreground/60">
-											{chat.lastMessage.message || 'No messages yet'}
-										</p>
+										<div class="mt-1 flex items-center gap-1">
+											{#if isMyMessage}
+												<Check
+													class={cn(
+														'size-3 shrink-0',
+														isRead ? 'text-blue-500' : 'text-foreground/60'
+													)}
+												/>
+											{/if}
+											<p
+												class="truncate text-xs text-foreground/60"
+												title={chat.lastMessage.message}
+											>
+												{chat.lastMessage.message || 'No messages yet'}
+											</p>
+										</div>
 									</div>
 									<div>
-										{#if (chat.conversation.userId1 === data.user?.id ? chat.conversation.unreadCountForUser1 : chat.conversation.unreadCountForUser2) > 0}
+										{#if unreadCount > 0}
 											<span
 												class="inline-flex items-center justify-center rounded-full bg-accent px-2 py-0.5 text-xs font-medium text-white"
 											>
-												{chat.conversation.userId1 === data.user?.id
-													? chat.conversation.unreadCountForUser1
-													: chat.conversation.unreadCountForUser2}
+												{unreadCount}
 											</span>
 										{/if}
 									</div>
@@ -98,13 +142,11 @@
 						</a>
 					</li>
 				{/each}
-
 				{#if filtered && filtered.length === 0}
 					<li class="px-4 py-6 text-center text-foreground/60">No chats found</li>
 				{/if}
 			</ul>
 		</div>
-
 		<div class="flex items-center gap-2 border-t border-border px-4 py-3">
 			<Button variant="ghost" class="w-full">New Group</Button>
 		</div>
