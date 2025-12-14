@@ -243,7 +243,7 @@
 					</div>
 					<div class="py-2 rounded-md bg-background">
 						<ClockIcon class="h-4 w-4 mx-auto mb-1 text-primary" />
-						<p class="text-xs font-semibold">{getTimeAgo(conversation.updatedAt)}</p>
+						<p class="text-xs font-semibold">{getTimeAgo(currentChatUser.lastSeenAt)}</p>
 						<p class="text-xs text-muted-foreground">Last Active</p>
 					</div>
 				</div>

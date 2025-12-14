@@ -22,6 +22,11 @@
 			} else {
 				toast.error(form.message.message);
 			}
+		},
+		onResult({ result }) {
+			if (result.type === 'redirect') {
+				window.location.href = result.location;
+			}
 		}
 	});
 	const { form: formData, enhance } = form;
