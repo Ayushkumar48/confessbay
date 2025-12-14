@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Chat, User } from '$lib/shared';
+	import type { Chat, ChatWithReply, User } from '$lib/shared';
 	import { cn, truncateText } from '$lib/utils';
 	import Check from '@lucide/svelte/icons/check';
 	import { format } from 'date-fns';
@@ -18,9 +18,7 @@
 		user,
 		onReply
 	}: {
-		m: Chat & {
-			reply?: (Chat & { sender?: { firstName?: string; lastName?: string } }) | null;
-		};
+		m: ChatWithReply;
 		user: User;
 		onReply?: (message: Chat) => void;
 	} = $props();

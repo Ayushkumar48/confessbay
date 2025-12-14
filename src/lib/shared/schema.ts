@@ -309,3 +309,9 @@ export type Chat = typeof chats.$inferSelect;
 export type Friends = typeof friends.$inferSelect;
 export type Followers = typeof followers.$inferSelect;
 export type Conversation = typeof conversations.$inferSelect;
+
+export type ChatWithReply = Chat & {
+	reply:
+		| (Chat & { sender: { id: string; firstName: string; lastName: string | null } | null })
+		| null;
+};

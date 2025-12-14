@@ -1,8 +1,10 @@
 import { json } from '@sveltejs/kit';
 import { chatsInsertSchema, conversationsInsertSchema } from '$lib/client/schema';
 import { db } from '$lib/server/db';
-import { chats, conversations } from '$lib/shared';
+import { chats, conversations, user } from '$lib/shared';
 import { eq } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
+import { decryptMessage } from '$lib/server/encryption-utils';
 
 export async function POST({ request }) {
 	try {
@@ -15,6 +17,50 @@ export async function POST({ request }) {
 				lastMessageId: msg.id
 			})
 			.where(eq(conversations.id, msg.conversationId));
+
+		if (msg.repliedTo) {
+			const replySender = alias(user, 'replySender');
+
+			const [replyData] = await db
+				.select({
+					reply: chats,
+					replySender: {
+						id: replySender.id,
+						firstName: replySender.firstName,
+						lastName: replySender.lastName
+					}
+				})
+				.from(chats)
+				.leftJoin(replySender, eq(chats.senderId, replySender.id))
+				.where(eq(chats.id, msg.repliedTo));
+
+			let replyObject = null;
+			if (replyData) {
+				const r = replyData.reply;
+				const s = replyData.replySender;
+
+				let decryptedReply = null;
+				if (r && r.chatMessageType === 'text' && r.message) {
+					decryptedReply = decryptMessage(r.message, r.iv, r.authTag);
+				}
+
+				replyObject = r
+					? {
+							...r,
+							message: decryptedReply,
+							sender: s
+						}
+					: null;
+			}
+
+			const enrichedMessage = {
+				...msg,
+				reply: replyObject
+			};
+
+			console.log('API returning enriched message:', JSON.stringify(enrichedMessage, null, 2));
+			return json(enrichedMessage);
+		}
 
 		return json({ success: true });
 	} catch (err) {

@@ -32,17 +32,50 @@ export function sendMessage(io: Server, socket: Socket) {
 			updatedAt: date.toISOString()
 		};
 
-		io.to(chatId).emit('message', {
-			...value,
-			message: message
-		});
+		if (replyTo) {
+			try {
+				const response = await fetch('http://localhost:5173/api/chat', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(value)
+				});
 
-		fetch('http://localhost:5173/api/chat', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(value)
-		}).catch((error) => {
-			console.error('Error saving message to database:', error);
-		});
+				if (response.ok) {
+					const savedMessage = await response.json();
+					console.log('Saved message from API:', JSON.stringify(savedMessage, null, 2));
+					const emittedMessage = {
+						...savedMessage,
+						message: message
+					};
+					console.log('Emitting message:', JSON.stringify(emittedMessage, null, 2));
+					io.to(chatId).emit('message', emittedMessage);
+				} else {
+					console.error('Error saving message to database:', response.statusText);
+					io.to(chatId).emit('message', {
+						...value,
+						message: message
+					});
+				}
+			} catch (error) {
+				console.error('Error saving message to database:', error);
+				io.to(chatId).emit('message', {
+					...value,
+					message: message
+				});
+			}
+		} else {
+			io.to(chatId).emit('message', {
+				...value,
+				message: message
+			});
+
+			fetch('http://localhost:5173/api/chat', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(value)
+			}).catch((error) => {
+				console.error('Error saving message to database:', error);
+			});
+		}
 	};
 }

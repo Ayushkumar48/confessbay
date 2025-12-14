@@ -10,7 +10,7 @@
 	import { socketConnection } from '../../../../lib/ws-connection';
 	import { onMount } from 'svelte';
 	import AvatarDropdown from '$lib/components/custom/messages/chat/avatar-dropdown.svelte';
-	import type { Chat } from '$lib/shared/schema.js';
+	import type { Chat, ChatWithReply } from '$lib/shared/schema.js';
 	import { Debounced } from 'runed';
 	import ChatAttachements from '$lib/components/custom/messages/chat/chat-attachements.svelte';
 	import EmojiList from '$lib/components/emoji-list.svelte';
@@ -50,30 +50,9 @@
 			socketConnection.emit('typing:stop', chatId);
 		}
 	});
-	function messageHandler(message: Chat) {
-		const enrichedMessage = {
-			...message,
-			reply:
-				message.senderId === data.user.id && replyingTo && message.repliedTo === replyingTo.id
-					? {
-							...replyingTo,
-							message: replyingTo.message || null,
-							sender:
-								replyingTo.senderId === data.user.id
-									? {
-											id: data.user.id,
-											firstName: data.user.firstName,
-											lastName: data.user.lastName
-										}
-									: {
-											id: currentChatUser?.id || '',
-											firstName: currentChatUser?.firstName || '',
-											lastName: currentChatUser?.lastName || null
-										}
-						}
-					: null
-		};
-		messages = [...messages, enrichedMessage];
+	function messageHandler(message: ChatWithReply) {
+		messages = [...messages, message];
+
 		if (message.senderId === data.user.id && replyingTo) {
 			replyingTo = null;
 		}

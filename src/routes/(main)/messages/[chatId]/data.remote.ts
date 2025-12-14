@@ -4,7 +4,7 @@ import { db } from '$lib/server/db';
 import { decryptMessage } from '$lib/server/encryption-utils';
 import { isOnline } from '$lib/server/dragonfly/presence';
 import { getOtherUser } from '$lib/server/utils';
-import { chats, conversations } from '$lib/shared';
+import { chats, conversations, user } from '$lib/shared';
 import { and, desc, eq } from 'drizzle-orm';
 import z from 'zod';
 import { alias } from 'drizzle-orm/pg-core';
@@ -102,13 +102,20 @@ export const storeChat = query(chatsInsertSchema, async (input) => {
 
 export const getMessagesWithChatId = query(z.object({ chatId: z.string() }), async (input) => {
 	const reply = alias(chats, 'reply');
+	const replySender = alias(user, 'replySender');
 	const rows = await db
 		.select({
 			message: chats,
-			reply: reply
+			reply: reply,
+			replySender: {
+				id: replySender.id,
+				firstName: replySender.firstName,
+				lastName: replySender.lastName
+			}
 		})
 		.from(chats)
 		.leftJoin(reply, eq(chats.repliedTo, reply.id))
+		.leftJoin(replySender, eq(reply.senderId, replySender.id))
 		.where(eq(chats.conversationId, input.chatId))
 		.orderBy(desc(chats.createdAt))
 		.limit(40);
@@ -117,6 +124,7 @@ export const getMessagesWithChatId = query(z.object({ chatId: z.string() }), asy
 		rows.map(async (row) => {
 			const m = row.message;
 			const r = row.reply;
+			const s = row.replySender;
 
 			let decryptedMessage = null;
 			if (m.chatMessageType === 'text') {
@@ -135,7 +143,8 @@ export const getMessagesWithChatId = query(z.object({ chatId: z.string() }), asy
 				reply: r
 					? {
 							...r,
-							message: decryptedReply
+							message: decryptedReply,
+							sender: s
 						}
 					: null
 			};
