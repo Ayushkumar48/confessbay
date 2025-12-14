@@ -7,7 +7,7 @@
 	import VideoIcon from '@lucide/svelte/icons/video';
 	import ImageIcon from '@lucide/svelte/icons/image';
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
-	import EmojiList from './emoji-list.svelte';
+	import EmojiList from '$lib/components/emoji-list.svelte';
 	import NewPostSettings from './new-post-settings.svelte';
 	import { superForm, type SuperValidated } from 'sveltekit-superforms';
 	import { confessionsInsertSchema, type ConfessionsInsertSchema } from '$lib/client/schema';
@@ -72,7 +72,7 @@
 				</Form.Control>
 			</Form.Field>
 			<div class="flex items-center justify-between py-4">
-				<EmojiList bind:postMessage={$formData.message} />
+				<EmojiList onEmojiSelect={(emoji) => ($formData.message += emoji)} />
 				<Form.Field {form} name="images">
 					<Form.Control>
 						{#snippet children({ props })}

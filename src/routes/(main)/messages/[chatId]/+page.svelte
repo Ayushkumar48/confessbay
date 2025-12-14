@@ -3,12 +3,10 @@
 	import { Button } from '$lib/components/ui/button';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import Send from '@lucide/svelte/icons/send';
-	import Paperclip from '@lucide/svelte/icons/paperclip';
-	import Camera from '@lucide/svelte/icons/camera';
-	import MoreVertical from '@lucide/svelte/icons/more-vertical';
 	import BanIcon from '@lucide/svelte/icons/ban';
 	import ShieldIcon from '@lucide/svelte/icons/shield';
 	import Check from '@lucide/svelte/icons/check';
+	import Smile from '@lucide/svelte/icons/smile';
 	import { cn, getDisplayName } from '$lib/utils.js';
 	import { socketConnection } from '../../../../lib/ws-connection';
 	import type { ChatsInsertSchema } from '$lib/client/schema.js';
@@ -18,6 +16,7 @@
 	import type { Chat } from '$lib/shared/schema.js';
 	import { format } from 'date-fns';
 	import { Debounced } from 'runed';
+	import ChatAttachements from '$lib/components/custom/messages/chat/chat-attachements.svelte';
 	// types
 	type Message = z.infer<ChatsInsertSchema>;
 	// states
@@ -33,10 +32,11 @@
 	const isBlockedByOther = $derived(
 		isUser1 ? conversation?.isBlockedByUser2 : conversation?.isBlockedByUser1
 	);
-	const canSendMessages = $derived(!isBlocked && !isBlockedByOther);
+	let canSendMessages = $derived(!isBlocked && !isBlockedByOther);
 	let isTyping = $state(false);
 	let isUserTyping = $state(false);
 	const debouncedTyping = new Debounced(() => isUserTyping, 1000);
+
 	// other
 	$effect(() => {
 		if (messagesContainer && messages && messages.length > 0) {
@@ -97,6 +97,10 @@
 	function handleStopTyping() {
 		isUserTyping = false;
 	}
+
+	function handleAttachment(type: string) {
+		console.log('Attachment type:', type);
+	}
 </script>
 
 <main class="flex flex-1 flex-col">
@@ -109,18 +113,6 @@
 				{isUserOnline}
 			/>
 		{/if}
-
-		<div class="flex items-center gap-2">
-			<Button variant="ghost" size="icon" aria-label="Attach">
-				<Paperclip class="size-5 text-foreground/80" />
-			</Button>
-			<Button variant="ghost" size="icon" aria-label="Camera">
-				<Camera class="size-5 text-foreground/80" />
-			</Button>
-			<Button variant="ghost" size="icon" aria-label="More">
-				<MoreVertical class="size-5 text-foreground/80" />
-			</Button>
-		</div>
 	</div>
 
 	<div
@@ -154,7 +146,19 @@
 				</span>
 			</div>
 		{:else}
-			<div class="flex items-center gap-3">
+			<div class="relative flex items-center gap-2">
+				<ChatAttachements bind:canSendMessages />
+
+				<Button
+					variant="ghost"
+					size="icon"
+					aria-label="Emoji"
+					onclick={() => handleAttachment('emoji')}
+					disabled={!canSendMessages}
+				>
+					<Smile class="size-5 text-foreground/80" />
+				</Button>
+
 				<Input
 					placeholder="Type a message"
 					bind:value={newMessage}
@@ -170,6 +174,7 @@
 					}}
 					onblur={handleStopTyping}
 				/>
+
 				<Button
 					variant="ghost"
 					size="icon"
