@@ -1,4 +1,5 @@
 <script lang="ts">
+	// imports
 	import { Button } from '$lib/components/ui/button';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import Send from '@lucide/svelte/icons/send';
@@ -8,7 +9,6 @@
 	import BanIcon from '@lucide/svelte/icons/ban';
 	import ShieldIcon from '@lucide/svelte/icons/shield';
 	import Check from '@lucide/svelte/icons/check';
-	import { page } from '$app/state';
 	import { cn, getDisplayName } from '$lib/utils.js';
 	import { socketConnection } from '../../../../lib/ws-connection';
 	import type { ChatsInsertSchema } from '$lib/client/schema.js';
@@ -17,18 +17,15 @@
 	import AvatarDropdown from '$lib/components/custom/messages/chat/avatar-dropdown.svelte';
 	import type { Chat } from '$lib/shared/schema.js';
 	import { format } from 'date-fns';
-
+	import { Debounced } from 'runed';
+	// types
 	type Message = z.infer<ChatsInsertSchema>;
-
-	let messagesContainer: HTMLDivElement | undefined = $state();
-
+	// states
 	const { data } = $props();
-
-	let { currentChatUser, conversation, messages } = $derived(data);
-
+	let { currentChatUser, conversation, messages, chatId } = $derived(data);
+	let messagesContainer: HTMLDivElement | undefined = $state();
 	let newMessage = $state('');
-
-	const currentUserId = $derived(page.data.user?.id);
+	const currentUserId = $derived(data.user.id);
 	const isUser1 = $derived(currentUserId === conversation?.userId1);
 	const isBlocked = $derived(
 		isUser1 ? conversation?.isBlockedByUser1 : conversation?.isBlockedByUser2
@@ -37,7 +34,10 @@
 		isUser1 ? conversation?.isBlockedByUser2 : conversation?.isBlockedByUser1
 	);
 	const canSendMessages = $derived(!isBlocked && !isBlockedByOther);
-
+	let isTyping = $state(false);
+	let isUserTyping = $state(false);
+	const debouncedTyping = new Debounced(() => isUserTyping, 1000);
+	// other
 	$effect(() => {
 		if (messagesContainer && messages && messages.length > 0) {
 			setTimeout(() => {
@@ -46,40 +46,57 @@
 		}
 	});
 
+	$effect(() => {
+		if (debouncedTyping.current) {
+			socketConnection.emit('typing:start', chatId);
+		} else {
+			socketConnection.emit('typing:stop', chatId);
+		}
+	});
 	onMount(() => {
-		socketConnection.joinRoom(page.params.chatId!);
+		socketConnection.joinRoom(chatId);
 		const handler = (message: Chat) => {
 			messages = [...messages, message];
 		};
 		socketConnection.on('message', handler);
+		socketConnection.on('typing:start', () => {
+			isTyping = true;
+		});
+		socketConnection.on('typing:stop', () => {
+			isTyping = false;
+		});
 		return () => {
 			socketConnection.off('message', handler);
-			socketConnection.leaveRoom(page.params.chatId!);
+			socketConnection.leaveRoom(chatId);
 		};
 	});
-
 	function scrollToBottom() {
 		if (messagesContainer) {
 			messagesContainer.scrollTop = messagesContainer.scrollHeight;
 		}
 	}
-
 	function sendMessage() {
 		if (!canSendMessages) return;
 		const message = newMessage.trim();
 		if (!message) return;
 		socketConnection.emit('message', {
-			chatId: page.params.chatId,
+			chatId: chatId,
 			message
 		});
 		newMessage = '';
+	}
+	function handleTyping() {
+		isUserTyping = true;
+	}
+	function handleStopTyping() {
+		isUserTyping = false;
 	}
 </script>
 
 <main class="flex flex-1 flex-col">
 	<div class="flex items-center justify-between gap-3 border-b border-border px-6 py-2">
 		{#if currentChatUser && conversation}
-			<AvatarDropdown {currentChatUser} bind:conversation />
+			<AvatarDropdown {currentChatUser} bind:conversation bind:isUserTyping={isTyping} />
 		{/if}
 
 		<div class="flex items-center gap-2">
@@ -132,12 +149,15 @@
 					bind:value={newMessage}
 					class="flex-1"
 					disabled={!canSendMessages}
+					oninput={handleTyping}
 					onkeydown={(e) => {
 						if (e.key === 'Enter') {
 							e.preventDefault();
+							handleStopTyping();
 							sendMessage();
 						}
 					}}
+					onblur={handleStopTyping}
 				/>
 				<Button
 					variant="ghost"
@@ -154,18 +174,18 @@
 </main>
 
 {#snippet message(m: Message)}
-	<div class={cn('flex', m.senderId === page.data.user.id ? 'justify-end' : 'justify-start')}>
+	<div class={cn('flex', m.senderId === data.user.id ? 'justify-end' : 'justify-start')}>
 		<div
 			class={cn(
 				'max-w-[50vw] rounded-lg px-4 py-2',
-				m.senderId === page.data.user.id ? 'bg-accent text-white' : 'bg-muted/10 text-foreground/90'
+				m.senderId === data.user.id ? 'bg-accent text-white' : 'bg-muted/10 text-foreground/90'
 			)}
 		>
 			<p class="text-sm wrap-break-word">{m.message}</p>
 			{#if m.createdAt}
 				<div class="mt-1 flex items-center justify-end gap-1 text-xs text-foreground/60">
 					<span>{format(m.createdAt, 'h:mm a')}</span>
-					{#if m.senderId === page.data.user.id}
+					{#if m.senderId === data.user.id}
 						<Check class={cn('size-3', m.readAt ? 'text-blue-500' : 'text-foreground/60')} />
 					{/if}
 				</div>

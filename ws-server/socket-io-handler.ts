@@ -2,7 +2,7 @@ import { Server } from 'socket.io';
 import type { Server as HTTPServer } from 'http';
 import { middleware } from './middleware';
 import { sendMessage } from './sockets/message';
-import { chatStats } from './sockets/chat';
+import { chatStats, startTyping, stopTyping } from './sockets/chat';
 
 export default function injectSocketIO(server: HTTPServer) {
 	const io = new Server(server, {
@@ -18,5 +18,16 @@ export default function injectSocketIO(server: HTTPServer) {
 		});
 		socket.on('message', sendMessage(io, socket));
 		socket.on('chat-stats', chatStats(io, socket));
+		socket.on('typing:start', startTyping(socket));
+		socket.on('typing:stop', stopTyping(socket));
+		socket.on('disconnect', () => {
+			for (const room of socket.rooms) {
+				if (room !== socket.id) {
+					socket.to(room).emit('typing:stop', {
+						userId: socket.data.userId
+					});
+				}
+			}
+		});
 	});
 }

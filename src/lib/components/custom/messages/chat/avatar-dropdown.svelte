@@ -27,8 +27,9 @@
 
 	let {
 		currentChatUser,
-		conversation = $bindable()
-	}: { currentChatUser: User; conversation: Conversation } = $props();
+		conversation = $bindable(),
+		isUserTyping = $bindable()
+	}: { currentChatUser: User; conversation: Conversation; isUserTyping: boolean } = $props();
 
 	const displayName = $derived(getDisplayName(currentChatUser));
 	const initials = $derived(getInitials(displayName));
@@ -128,6 +129,24 @@
 				{#if isBlocked || isBlockedByOther}
 					<ShieldIcon class="h-3 w-3 text-red-500" />
 					<span class="text-red-500">Blocked</span>
+				{:else if isUserTyping}
+					<span class="flex items-center gap-1 text-primary">
+						<span class="flex gap-0.5">
+							<span
+								class="inline-block h-1.5 w-1.5 rounded-full bg-primary animate-bounce"
+								style="animation-delay: 0ms;"
+							></span>
+							<span
+								class="inline-block h-1.5 w-1.5 rounded-full bg-primary animate-bounce"
+								style="animation-delay: 150ms;"
+							></span>
+							<span
+								class="inline-block h-1.5 w-1.5 rounded-full bg-primary animate-bounce"
+								style="animation-delay: 300ms;"
+							></span>
+						</span>
+						<span class="font-medium">typing...</span>
+					</span>
 				{:else}
 					<span class="inline-block h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse"></span>
 					Active now

@@ -6,5 +6,5 @@ export async function load({ params }) {
 		getConversationForChat({ chatId }),
 		getMessagesWithChatId({ chatId })
 	]);
-	return { currentChatUser, conversation, messages };
+	return { currentChatUser, conversation, messages, chatId };
 }

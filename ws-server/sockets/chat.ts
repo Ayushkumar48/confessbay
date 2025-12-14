@@ -16,3 +16,19 @@ export function chatStats(io: Server, socket: Socket) {
 		});
 	};
 }
+
+export function startTyping(socket: Socket) {
+	return (chatId: string) => {
+		socket.to(chatId).emit('typing:start', {
+			userId: socket.data.userId
+		});
+	};
+}
+
+export function stopTyping(socket: Socket) {
+	return (chatId: string) => {
+		socket.to(chatId).emit('typing:stop', {
+			userId: socket.data.userId
+		});
+	};
+}
