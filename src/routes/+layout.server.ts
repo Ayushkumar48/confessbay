@@ -3,6 +3,6 @@ export async function load({ locals }) {
 		return { user: null };
 	}
 
-	const user = locals?.user;
+	const user = locals.user;
 	return { user };
 }

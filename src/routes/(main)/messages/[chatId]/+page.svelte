@@ -55,18 +55,24 @@
 	});
 	onMount(() => {
 		socketConnection.joinRoom(chatId);
-		const handler = (message: Chat) => {
+		const messageHandler = (message: Chat) => {
 			messages = [...messages, message];
 		};
-		socketConnection.on('message', handler);
-		socketConnection.on('typing:start', () => {
+		const typingStartHandler = () => {
 			isTyping = true;
-		});
-		socketConnection.on('typing:stop', () => {
+		};
+		const typingStopHandler = () => {
 			isTyping = false;
-		});
+		};
+
+		socketConnection.on('message', messageHandler);
+		socketConnection.on('typing:start', typingStartHandler);
+		socketConnection.on('typing:stop', typingStopHandler);
+
 		return () => {
-			socketConnection.off('message', handler);
+			socketConnection.off('message', messageHandler);
+			socketConnection.off('typing:start', typingStartHandler);
+			socketConnection.off('typing:stop', typingStopHandler);
 			socketConnection.leaveRoom(chatId);
 		};
 	});

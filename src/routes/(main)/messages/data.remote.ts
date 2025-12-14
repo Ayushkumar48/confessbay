@@ -48,3 +48,12 @@ export const getConversations = query(z.object({ userId: z.string() }), async ({
 	);
 	return withAvatars;
 });
+
+export const getConversationIds = query(z.object({ userId: z.string() }), async ({ userId }) => {
+	return await db
+		.select({
+			conversationId: conversations.id
+		})
+		.from(conversations)
+		.where(or(eq(conversations.userId1, userId), eq(conversations.userId2, userId)));
+});
