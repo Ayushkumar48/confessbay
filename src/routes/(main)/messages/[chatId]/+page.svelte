@@ -1,12 +1,11 @@
 <script lang="ts">
-	// imports
 	import { Button } from '$lib/components/ui/button';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import Send from '@lucide/svelte/icons/send';
 	import BanIcon from '@lucide/svelte/icons/ban';
 	import ShieldIcon from '@lucide/svelte/icons/shield';
+	import SmileIcon from '@lucide/svelte/icons/smile';
 	import Check from '@lucide/svelte/icons/check';
-	import Smile from '@lucide/svelte/icons/smile';
 	import { cn, getDisplayName } from '$lib/utils.js';
 	import { socketConnection } from '../../../../lib/ws-connection';
 	import type { ChatsInsertSchema } from '$lib/client/schema.js';
@@ -17,7 +16,7 @@
 	import { format } from 'date-fns';
 	import { Debounced } from 'runed';
 	import ChatAttachements from '$lib/components/custom/messages/chat/chat-attachements.svelte';
-	// types
+	import EmojiList from '$lib/components/emoji-list.svelte';
 	type Message = z.infer<ChatsInsertSchema>;
 	// states
 	const { data } = $props();
@@ -148,17 +147,13 @@
 		{:else}
 			<div class="relative flex items-center gap-2">
 				<ChatAttachements bind:canSendMessages />
-
-				<Button
-					variant="ghost"
-					size="icon"
-					aria-label="Emoji"
-					onclick={() => handleAttachment('emoji')}
-					disabled={!canSendMessages}
-				>
-					<Smile class="size-5 text-foreground/80" />
-				</Button>
-
+				<EmojiList onEmojiSelect={(emoji) => (newMessage += emoji)}>
+					{#snippet children({ props })}
+						<Button {...props} variant="ghost" size="icon" aria-label="Emoji">
+							<SmileIcon class="size-5 text-foreground/80" />
+						</Button>
+					{/snippet}
+				</EmojiList>
 				<Input
 					placeholder="Type a message"
 					bind:value={newMessage}

@@ -31,17 +31,22 @@
 </script>
 
 <script lang="ts">
-	import { buttonVariants } from '$lib/components/ui/button';
 	import * as Command from '$lib/components/ui/command/index.js';
 	import * as Popover from '$lib/components/ui/popover/index.js';
 	import { cn } from '$lib/utils';
 	import { Debounced } from 'runed';
 	import { createVirtualizer } from '@tanstack/svelte-virtual';
-	import SmilePlusIcon from '@lucide/svelte/icons/smile-plus';
 	import emojiData from 'emojibase-data/en/data.json';
 	import messagesData from 'emojibase-data/en/messages.json';
+	import type { Snippet } from 'svelte';
 
-	let { onEmojiSelect }: { onEmojiSelect: (emoji: string) => void } = $props();
+	let {
+		onEmojiSelect,
+		children
+	}: {
+		onEmojiSelect: (emoji: string) => void;
+		children: Snippet<[{ props: Record<string, unknown> }]>;
+	} = $props();
 
 	let open = $state(false);
 	let value = $state('');
@@ -206,14 +211,10 @@
 </script>
 
 <Popover.Root bind:open onOpenChange={handleOpenChange}>
-	<Popover.Trigger
-		class={cn(
-			buttonVariants({ size: 'sm', variant: 'ghost' }),
-			'cursor-pointer ring-1 ring-amber-300'
-		)}
-	>
-		<SmilePlusIcon class="fill-amber-300 text-amber-900" />
-		Emojis
+	<Popover.Trigger>
+		{#snippet child({ props })}
+			{@render children({ props })}
+		{/snippet}
 	</Popover.Trigger>
 	<Popover.Content class="w-96 p-0" align="start">
 		<Command.Root bind:value>

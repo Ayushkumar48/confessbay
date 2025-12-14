@@ -5,6 +5,7 @@
 	import SendIcon from '@lucide/svelte/icons/send';
 	import HeartIcon from '@lucide/svelte/icons/heart';
 	import VideoIcon from '@lucide/svelte/icons/video';
+	import SmilePlusIcon from '@lucide/svelte/icons/smile-plus';
 	import ImageIcon from '@lucide/svelte/icons/image';
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
 	import EmojiList from '$lib/components/emoji-list.svelte';
@@ -72,7 +73,19 @@
 				</Form.Control>
 			</Form.Field>
 			<div class="flex items-center justify-between py-4">
-				<EmojiList onEmojiSelect={(emoji) => ($formData.message += emoji)} />
+				<EmojiList onEmojiSelect={(emoji) => ($formData.message += emoji)}>
+					{#snippet children({ props })}
+						<Button
+							{...props}
+							class="cursor-pointer ring-1 ring-amber-300"
+							size="sm"
+							variant="ghost"
+						>
+							<SmilePlusIcon class="fill-amber-300 text-amber-900" />
+							Emojis
+						</Button>
+					{/snippet}
+				</EmojiList>
 				<Form.Field {form} name="images">
 					<Form.Control>
 						{#snippet children({ props })}
