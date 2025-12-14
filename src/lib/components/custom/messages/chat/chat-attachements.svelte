@@ -7,16 +7,13 @@
 	import Camera from '@lucide/svelte/icons/camera';
 	import Video from '@lucide/svelte/icons/video';
 	import { Button } from '$lib/components/ui/button';
-	import { chatMessageType } from '$lib/shared/enums';
 	import { cn } from '$lib/utils';
+	import type { ChatMessageType } from '$lib/shared/enums';
 
-	let { canSendMessages = $bindable() }: { canSendMessages: boolean } = $props();
-
-	type ChatMessageType = (typeof chatMessageType)[number];
-
-	function handleAttachment(type: ChatMessageType) {
-		console.log('Attachment type:', type);
-	}
+	let {
+		canSendMessages = $bindable(),
+		handleAttachment
+	}: { canSendMessages: boolean; handleAttachment: (type: ChatMessageType) => void } = $props();
 
 	const attachments: Array<{
 		type: ChatMessageType;

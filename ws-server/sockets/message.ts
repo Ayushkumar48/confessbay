@@ -3,28 +3,46 @@ import { encodeBase32LowerCase } from '@oslojs/encoding';
 import type { Socket, Server } from 'socket.io';
 
 export function sendMessage(io: Server, socket: Socket) {
-	return async ({ chatId, message }: { chatId: string; message: string }) => {
+	return async ({
+		chatId,
+		message,
+		replyTo
+	}: {
+		chatId: string;
+		message: string;
+		replyTo?: string | null;
+	}) => {
 		const userId = socket.data.userId;
 		const date = new Date();
 		const { encrypted, iv, authTag } = encryptMessage(message);
+		const messageId = encodeBase32LowerCase(crypto.getRandomValues(new Uint8Array(15)));
+
 		const value = {
-			id: encodeBase32LowerCase(crypto.getRandomValues(new Uint8Array(15))),
+			id: messageId,
 			senderId: userId,
 			conversationId: chatId,
 			message: encrypted,
 			iv,
 			authTag,
-			chatmessageType: 'text',
+			chatMessageType: 'text',
 			deliveredAt: date.toISOString(),
 			isDeleted: false,
+			repliedTo: replyTo || null,
 			createdAt: date.toISOString(),
 			updatedAt: date.toISOString()
 		};
-		io.to(chatId).emit('message', { ...value, message: message });
-		await fetch('http://localhost:5173/api/chat', {
+
+		io.to(chatId).emit('message', {
+			...value,
+			message: message
+		});
+
+		fetch('http://localhost:5173/api/chat', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(value)
+		}).catch((error) => {
+			console.error('Error saving message to database:', error);
 		});
 	};
 }

@@ -57,6 +57,8 @@
 			toast.error(res.message);
 		}
 	}
+	const displayName = $derived(getDisplayName(confessedFromUser));
+	const initials = $derived(getInitials(displayName));
 </script>
 
 <Card.Root class="transition-all duration-300 hover:shadow-md">
@@ -67,9 +69,7 @@
 					<Avatar class="h-12 w-12">
 						<AvatarImage src={confessedFromAvatar} alt="User avatar" />
 						<AvatarFallback class="bg-primary/10 font-semibold text-primary">
-							{confession.isAnonymous || !confessedFromUser
-								? 'ANON'
-								: getInitials(getDisplayName(confessedFromUser))}
+							{!confession.isAnonymous && confessedFromUser?.firstName ? initials : 'ANON'}
 						</AvatarFallback>
 					</Avatar>
 				{/if}
@@ -153,12 +153,12 @@
 						alt="Confessed to avatar"
 					/>
 					<AvatarFallback class="bg-primary/10 font-semibold text-primary">
-						{getInitials(getDisplayName(confessedToUser))}
+						{initials}
 					</AvatarFallback>
 				</Avatar>
 				<div class="flex flex-col">
 					<span class="font-medium text-foreground">@{confessedToUser.username}</span>
-					<span class="text-xs text-muted-foreground">{getDisplayName(confessedToUser)}</span>
+					<span class="text-xs text-muted-foreground">{displayName}</span>
 				</div>
 			</div>
 		</div>

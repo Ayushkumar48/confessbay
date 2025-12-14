@@ -45,6 +45,7 @@ const visibility = ['College', 'Friends', 'Public'] as const;
 const reportStatus = ['Pending', 'Reviewed', 'Removed'] as const;
 const notificationType = ['Like', 'Reply', 'Friend Request', 'Report'] as const;
 const chatMessageType = ['text', 'image', 'file', 'video', 'audio'] as const;
+type ChatMessageType = (typeof chatMessageType)[number];
 
 export {
 	gender,
@@ -57,3 +58,5 @@ export {
 	notificationType,
 	chatMessageType
 };
+
+export type { ChatMessageType };

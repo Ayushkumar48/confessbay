@@ -1,28 +1,27 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
-	import Input from '$lib/components/ui/input/input.svelte';
+	import { Textarea } from '$lib/components/ui/textarea';
 	import Send from '@lucide/svelte/icons/send';
 	import BanIcon from '@lucide/svelte/icons/ban';
 	import ShieldIcon from '@lucide/svelte/icons/shield';
 	import SmileIcon from '@lucide/svelte/icons/smile';
-	import Check from '@lucide/svelte/icons/check';
-	import { cn, getDisplayName } from '$lib/utils.js';
+	import XIcon from '@lucide/svelte/icons/x';
+	import { cn, getDisplayName, truncateText } from '$lib/utils.js';
 	import { socketConnection } from '../../../../lib/ws-connection';
-	import type { ChatsInsertSchema } from '$lib/client/schema.js';
-	import type z from 'zod';
 	import { onMount } from 'svelte';
 	import AvatarDropdown from '$lib/components/custom/messages/chat/avatar-dropdown.svelte';
 	import type { Chat } from '$lib/shared/schema.js';
-	import { format } from 'date-fns';
 	import { Debounced } from 'runed';
 	import ChatAttachements from '$lib/components/custom/messages/chat/chat-attachements.svelte';
 	import EmojiList from '$lib/components/emoji-list.svelte';
-	type Message = z.infer<ChatsInsertSchema>;
-	// states
+	import Message from '$lib/components/custom/messages/chat/message.svelte';
+
 	const { data } = $props();
 	let { currentChatUser, conversation, messages, chatId, isUserOnline } = $derived(data);
 	let messagesContainer: HTMLDivElement | undefined = $state();
+	let textareaElement: HTMLTextAreaElement | null = $state(null);
 	let newMessage = $state('');
+	let replyingTo = $state<Chat | null>(null);
 	const currentUserId = $derived(data.user.id);
 	const isUser1 = $derived(currentUserId === conversation?.userId1);
 	const isBlocked = $derived(
@@ -36,7 +35,6 @@
 	let isUserTyping = $state(false);
 	const debouncedTyping = new Debounced(() => isUserTyping, 1000);
 
-	// other
 	$effect(() => {
 		if (messagesContainer && messages && messages.length > 0) {
 			setTimeout(() => {
@@ -52,17 +50,42 @@
 			socketConnection.emit('typing:stop', chatId);
 		}
 	});
+	function messageHandler(message: Chat) {
+		const enrichedMessage = {
+			...message,
+			reply:
+				message.senderId === data.user.id && replyingTo && message.repliedTo === replyingTo.id
+					? {
+							...replyingTo,
+							message: replyingTo.message || null,
+							sender:
+								replyingTo.senderId === data.user.id
+									? {
+											id: data.user.id,
+											firstName: data.user.firstName,
+											lastName: data.user.lastName
+										}
+									: {
+											id: currentChatUser?.id || '',
+											firstName: currentChatUser?.firstName || '',
+											lastName: currentChatUser?.lastName || null
+										}
+						}
+					: null
+		};
+		messages = [...messages, enrichedMessage];
+		if (message.senderId === data.user.id && replyingTo) {
+			replyingTo = null;
+		}
+	}
+	function typingStartHandler() {
+		isTyping = true;
+	}
+	function typingStopHandler() {
+		isTyping = false;
+	}
 	onMount(() => {
 		socketConnection.joinRoom(chatId);
-		const messageHandler = (message: Chat) => {
-			messages = [...messages, message];
-		};
-		const typingStartHandler = () => {
-			isTyping = true;
-		};
-		const typingStopHandler = () => {
-			isTyping = false;
-		};
 
 		socketConnection.on('message', messageHandler);
 		socketConnection.on('typing:start', typingStartHandler);
@@ -86,7 +109,8 @@
 		if (!message) return;
 		socketConnection.emit('message', {
 			chatId: chatId,
-			message
+			message,
+			replyTo: replyingTo?.id || null
 		});
 		newMessage = '';
 	}
@@ -99,6 +123,22 @@
 
 	function handleAttachment(type: string) {
 		console.log('Attachment type:', type);
+	}
+
+	function handleReplyTo(message: Chat) {
+		replyingTo = message;
+		setTimeout(() => {
+			textareaElement?.focus();
+		}, 0);
+	}
+
+	function cancelReply() {
+		replyingTo = null;
+	}
+
+	function getReplyName(message: Chat) {
+		if (message.senderId === data.user.id) return 'You';
+		return currentChatUser?.firstName || 'Unknown';
 	}
 </script>
 
@@ -120,7 +160,7 @@
 	>
 		{#if messages && messages.length > 0}
 			{#each messages as m (m.id)}
-				{@render message(m)}
+				<Message {m} user={data.user} onReply={handleReplyTo} />
 			{/each}
 		{:else}
 			<div class="text-center text-foreground/60">No messages yet — say hello 👋</div>
@@ -145,62 +185,61 @@
 				</span>
 			</div>
 		{:else}
-			<div class="relative flex items-center gap-2">
-				<ChatAttachements bind:canSendMessages />
-				<EmojiList onEmojiSelect={(emoji) => (newMessage += emoji)}>
-					{#snippet children({ props })}
-						<Button {...props} variant="ghost" size="icon" aria-label="Emoji">
-							<SmileIcon class="size-5 text-foreground/80" />
+			<div class="flex flex-col gap-2">
+				{#if replyingTo}
+					<div
+						class="flex items-center gap-2 rounded-t-lg border-l-4 border-l-green-500 bg-muted/50 px-3 py-2"
+					>
+						<div class="flex-1">
+							<p class="text-xs font-semibold text-green-500">{getReplyName(replyingTo)}</p>
+							<p class="text-xs text-muted-foreground">
+								{truncateText(replyingTo.message || '', 80)}
+							</p>
+						</div>
+						<Button variant="ghost" size="icon" class="h-6 w-6" onclick={cancelReply}>
+							<XIcon class="h-4 w-4" />
 						</Button>
-					{/snippet}
-				</EmojiList>
-				<Input
-					placeholder="Type a message"
-					bind:value={newMessage}
-					class="flex-1"
-					disabled={!canSendMessages}
-					oninput={handleTyping}
-					onkeydown={(e) => {
-						if (e.key === 'Enter') {
-							e.preventDefault();
-							handleStopTyping();
-							sendMessage();
-						}
-					}}
-					onblur={handleStopTyping}
-				/>
+					</div>
+				{/if}
 
-				<Button
-					variant="ghost"
-					size="icon"
-					aria-label="Send"
-					onclick={sendMessage}
-					disabled={!canSendMessages}
-				>
-					<Send class="size-5 text-foreground/90" />
-				</Button>
+				<div class="relative flex items-center gap-2">
+					<ChatAttachements bind:canSendMessages {handleAttachment} />
+					<EmojiList onEmojiSelect={(emoji) => (newMessage += emoji)}>
+						{#snippet children({ props })}
+							<Button {...props} variant="ghost" size="icon" aria-label="Emoji">
+								<SmileIcon class="size-5 text-foreground/80" />
+							</Button>
+						{/snippet}
+					</EmojiList>
+					<Textarea
+						bind:ref={textareaElement}
+						placeholder="Type a message"
+						bind:value={newMessage}
+						class={cn('min-h-11 max-h-32 flex-1 resize-none', replyingTo && 'rounded-t-none')}
+						disabled={!canSendMessages}
+						oninput={handleTyping}
+						onkeydown={(e) => {
+							if (e.key === 'Enter' && !e.shiftKey) {
+								e.preventDefault();
+								handleStopTyping();
+								sendMessage();
+							}
+						}}
+						onblur={handleStopTyping}
+						rows={1}
+					/>
+
+					<Button
+						variant="ghost"
+						size="icon"
+						aria-label="Send"
+						onclick={sendMessage}
+						disabled={!canSendMessages}
+					>
+						<Send class="size-5 text-foreground/90" />
+					</Button>
+				</div>
 			</div>
 		{/if}
 	</div>
 </main>
-
-{#snippet message(m: Message)}
-	<div class={cn('flex', m.senderId === data.user.id ? 'justify-end' : 'justify-start')}>
-		<div
-			class={cn(
-				'max-w-[50vw] rounded-lg px-4 py-2',
-				m.senderId === data.user.id ? 'bg-accent text-white' : 'bg-muted/10 text-foreground/90'
-			)}
-		>
-			<p class="text-sm wrap-break-word">{m.message}</p>
-			{#if m.createdAt}
-				<div class="mt-1 flex items-center justify-end gap-1 text-xs text-foreground/60">
-					<span>{format(m.createdAt, 'h:mm a')}</span>
-					{#if m.senderId === data.user.id}
-						<Check class={cn('size-3', m.readAt ? 'text-blue-500' : 'text-foreground/60')} />
-					{/if}
-				</div>
-			{/if}
-		</div>
-	</div>
-{/snippet}

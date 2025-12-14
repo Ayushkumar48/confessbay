@@ -1,0 +1,2 @@
+ALTER TABLE "chats" ADD COLUMN "replied_to" text;--> statement-breakpoint
+ALTER TABLE "chats" ADD CONSTRAINT "chats_replied_to_chats_id_fk" FOREIGN KEY ("replied_to") REFERENCES "public"."chats"("id") ON DELETE cascade ON UPDATE no action;

@@ -11,7 +11,8 @@ import {
 	integer,
 	check,
 	index,
-	primaryKey
+	primaryKey,
+	foreignKey
 } from 'drizzle-orm/pg-core';
 
 export const genderEnum = pgEnum('gender_enum', enums.gender);
@@ -157,9 +158,9 @@ export const chats = pgTable(
 			.notNull()
 			.references(() => user.id, { onDelete: 'cascade' }),
 		conversationId: text('conversation_id').notNull(),
-		message: text('message').notNull(),
-		iv: text('iv').notNull(),
-		authTag: text('auth_tag').notNull(),
+		message: text('message'),
+		iv: text('iv'),
+		authTag: text('auth_tag'),
 		chatMessageType: chatMessageTypeEnum('chat_message_type').default('text').notNull(),
 		mediaUrl: text('media_url'),
 		deliveredAt: timestamp('delivered_at', {
@@ -170,15 +171,30 @@ export const chats = pgTable(
 			withTimezone: true,
 			mode: 'date'
 		}),
+		repliedTo: text('replied_to'),
 		isDeleted: boolean('is_deleted').default(false).notNull(),
 		createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow().notNull(),
 		updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).defaultNow().notNull()
 	},
 	(table) => [
+		foreignKey({
+			columns: [table.repliedTo],
+			foreignColumns: [table.id]
+		}).onDelete('set null'),
 		index('idx_chats_conversation').on(table.conversationId),
 		index('idx_chats_sender').on(table.senderId),
 		index('idx_chats_created_at').on(table.createdAt),
-		index('idx_chats_readat').on(table.readAt)
+		index('idx_chats_readat').on(table.readAt),
+		sql`
+				CHECK (
+					${table.chatMessageType} <> 'text'
+					OR (
+						${table.message} IS NOT NULL
+						AND ${table.iv} IS NOT NULL
+						AND ${table.authTag} IS NOT NULL
+					)
+				)
+			`
 	]
 );
 

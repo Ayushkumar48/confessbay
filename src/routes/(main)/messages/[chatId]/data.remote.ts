@@ -7,6 +7,7 @@ import { getOtherUser } from '$lib/server/utils';
 import { chats, conversations } from '$lib/shared';
 import { and, desc, eq } from 'drizzle-orm';
 import z from 'zod';
+import { alias } from 'drizzle-orm/pg-core';
 
 export const getConversation = query(
 	z.object({
@@ -100,17 +101,46 @@ export const storeChat = query(chatsInsertSchema, async (input) => {
 });
 
 export const getMessagesWithChatId = query(z.object({ chatId: z.string() }), async (input) => {
+	const reply = alias(chats, 'reply');
 	const rows = await db
-		.select()
+		.select({
+			message: chats,
+			reply: reply
+		})
 		.from(chats)
+		.leftJoin(reply, eq(chats.repliedTo, reply.id))
 		.where(eq(chats.conversationId, input.chatId))
 		.orderBy(desc(chats.createdAt))
 		.limit(40);
 
-	const decrypted = rows.map((m) => ({
-		...m,
-		message: decryptMessage(m.message, m.iv, m.authTag)
-	}));
+	const decrypted = await Promise.all(
+		rows.map(async (row) => {
+			const m = row.message;
+			const r = row.reply;
+
+			let decryptedMessage = null;
+			if (m.chatMessageType === 'text') {
+				decryptedMessage = decryptMessage(m.message, m.iv, m.authTag);
+			}
+
+			let decryptedReply = null;
+
+			if (r && r.chatMessageType === 'text' && r.message) {
+				decryptedReply = decryptMessage(r.message, r.iv, r.authTag);
+			}
+
+			return {
+				...m,
+				message: decryptedMessage,
+				reply: r
+					? {
+							...r,
+							message: decryptedReply
+						}
+					: null
+			};
+		})
+	);
 
 	return decrypted.reverse();
 });

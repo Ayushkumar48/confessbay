@@ -16,7 +16,12 @@ export function encryptMessage(message: string) {
 	};
 }
 
-export function decryptMessage(encrypted: string, iv: string, authTag: string) {
+export function decryptMessage(
+	encrypted: string | null,
+	iv: string | null,
+	authTag: string | null
+) {
+	if (!encrypted || !iv || !authTag) return '';
 	const decipher = crypto.createDecipheriv(ALGORITHM, ENCRYPTION_KEY, Buffer.from(iv, 'hex'));
 	decipher.setAuthTag(Buffer.from(authTag, 'hex'));
 	let decrypted = decipher.update(encrypted, 'hex', 'utf8');

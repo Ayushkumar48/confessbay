@@ -6,6 +6,7 @@ import {
 	replies,
 	reports,
 	user,
+	type ConfessionWithToAndFrom,
 	type User,
 	type UserLite
 } from '$lib/server/db/schema';
@@ -16,29 +17,25 @@ import z from 'zod';
 import { confessionsInsertSchema, repliesInsertSchema } from '$lib/client/schema';
 import { generateUserId } from '$lib/utils';
 
-const userKey = (u?: User | UserLite) => {
-	if (!u) return '';
-	return 'id' in u && u.id ? `id:${u.id}` : `avatar:${String((u as UserLite).avatar ?? '')}`;
+type ReplyWithUser = {
+	id: string;
+	confessionId: string;
+	message: string;
+	createdAt: Date;
+	user: User | UserLite | null;
 };
-
-function isFullUser(u?: User | UserLite | null): u is User {
-	if (!u) return false;
-	return (
-		typeof (u as User).email === 'string' &&
-		typeof (u as User).createdAt !== 'undefined' &&
-		typeof (u as User).city !== 'undefined'
-	);
-}
 
 export const getConfessionPosts = query(
 	z.object({
 		userId: z.string().optional()
 	}),
-	async (input) => {
+	async (input): Promise<ConfessionWithToAndFrom[]> => {
 		try {
 			const fromUser = alias(user, 'fromUser');
 			const toUser = alias(user, 'toUser');
 			const replyUser = alias(user, 'replyUser');
+
+			/* -------------------- 1. Confessions -------------------- */
 
 			const confessionsData = await db
 				.select({
@@ -52,13 +49,15 @@ export const getConfessionPosts = query(
 				.orderBy(desc(confessions.lastUpdatedAt))
 				.limit(20);
 
-			if (!confessionsData || confessionsData.length === 0) {
-				return [];
-			}
+			if (confessionsData.length === 0) return [];
 
 			const confessionIds = confessionsData.map((c) => c.confession.id);
+
+			/* -------------------- 2. Parallel queries -------------------- */
+
 			const repliesPromise = db
 				.select({
+					confessionId: replies.confessionId,
 					reply: replies,
 					user: {
 						id: replyUser.id,
@@ -74,9 +73,13 @@ export const getConfessionPosts = query(
 				.where(inArray(replies.confessionId, confessionIds));
 
 			const reportsPromise = db
-				.select()
+				.select({
+					confessionId: reports.confessionId,
+					count: sql<number>`count(*)`
+				})
 				.from(reports)
-				.where(inArray(reports.confessionId, confessionIds));
+				.where(inArray(reports.confessionId, confessionIds))
+				.groupBy(reports.confessionId);
 
 			const likesPromise = input.userId
 				? db
@@ -85,86 +88,67 @@ export const getConfessionPosts = query(
 						.where(and(inArray(likes.confessionId, confessionIds), eq(likes.userId, input.userId)))
 				: Promise.resolve([]);
 
-			const [allReplies, allReports, userLikes] = await Promise.all([
+			const [allReplies, reportCounts, userLikes] = await Promise.all([
 				repliesPromise,
 				reportsPromise,
 				likesPromise
 			]);
-			const uniqueUserMap = new Map<string, User | UserLite>();
-			for (const c of confessionsData) {
-				if (c.confessedFromUser) {
-					uniqueUserMap.set(userKey(c.confessedFromUser), c.confessedFromUser as User);
-				}
-				if (c.confessedToUser) {
-					uniqueUserMap.set(userKey(c.confessedToUser), c.confessedToUser as User);
-				}
-			}
+
+			/* -------------------- 3. Maps (typed) -------------------- */
+
+			const repliesByConfession = new Map<string, ReplyWithUser[]>();
+
 			for (const r of allReplies) {
-				if (r.user) {
-					const key = userKey(r.user);
-					if (!uniqueUserMap.has(key)) {
-						uniqueUserMap.set(key, r.user);
-					}
-				}
+				const list = repliesByConfession.get(r.confessionId) ?? [];
+				list.push({
+					...r.reply,
+					user: r.user
+				});
+				repliesByConfession.set(r.confessionId, list);
 			}
 
-			const avatarFetchPromises: Array<Promise<readonly [string, string]>> = [];
-			for (const [key, u] of uniqueUserMap.entries()) {
-				const avatar = (u as User | UserLite).avatar;
-				if (avatar !== undefined && avatar !== null && avatar !== '') {
-					avatarFetchPromises.push(getSvgUrl(avatar).then((url) => [key, url] as const));
-				}
+			const reportsByConfession = new Map<string, number>();
+			for (const r of reportCounts) {
+				reportsByConfession.set(r.confessionId, r.count);
 			}
 
-			const avatarResults = await Promise.all(avatarFetchPromises);
-			for (const [key, url] of avatarResults) {
-				const u = uniqueUserMap.get(key);
-				if (u) {
-					u.avatar = url;
-				}
+			const likedIds = new Set<string>(userLikes.map((l) => l.confessionId));
+
+			/* -------------------- 4. User dedupe -------------------- */
+
+			const userMap = new Map<string, User | UserLite>();
+
+			for (const c of confessionsData) {
+				if (c.confessedFromUser) userMap.set(c.confessedFromUser.id, c.confessedFromUser);
+				if (c.confessedToUser) userMap.set(c.confessedToUser.id, c.confessedToUser);
 			}
 
-			const repliesByConfession = Object.groupBy(allReplies, (r) => r.reply.confessionId);
-			const reportsByConfession = Object.groupBy(allReports, (r) => r.confessionId);
+			for (const r of allReplies) {
+				if (r.user) userMap.set(r.user.id, r.user);
+			}
 
-			const likedIds = new Set<string>(
-				(userLikes ?? []).map((l: { confessionId: string }) => l.confessionId)
+			/* -------------------- 5. Avatar resolve -------------------- */
+
+			await Promise.all(
+				Array.from(userMap.values())
+					.filter((u): u is User | UserLite => Boolean(u.avatar))
+					.map(async (u) => {
+						u.avatar = await getSvgUrl(u.avatar!);
+					})
 			);
 
-			return confessionsData.map((c) => {
-				const fromKey = c.confessedFromUser ? userKey(c.confessedFromUser) : '';
-				const toKey = c.confessedToUser ? userKey(c.confessedToUser) : '';
-				const maybeFrom = fromKey ? uniqueUserMap.get(fromKey) : undefined;
-				const enrichedFrom =
-					maybeFrom && isFullUser(maybeFrom) ? (maybeFrom as User) : c.confessedFromUser;
+			/* -------------------- 6. Final shape -------------------- */
 
-				const maybeTo = toKey ? uniqueUserMap.get(toKey) : undefined;
-				const enrichedTo = maybeTo && isFullUser(maybeTo) ? (maybeTo as User) : c.confessedToUser;
-
-				const repliesFor = (repliesByConfession[c.confession.id] ?? []).map((r) => {
-					let replyUserObj = r.user;
-					if (r.user) {
-						const k = userKey(r.user);
-						const mapped = uniqueUserMap.get(k);
-						if (mapped) {
-							replyUserObj = isFullUser(mapped) ? (mapped as User) : r.user;
-						}
-					}
-					return {
-						...r.reply,
-						user: replyUserObj
-					};
-				});
-
-				return {
-					...c,
-					confessedFromUser: enrichedFrom,
-					confessedToUser: enrichedTo,
-					replies: repliesFor,
-					reports: reportsByConfession[c.confession.id] ?? [],
-					currentUserLiked: likedIds.has(c.confession.id)
-				};
-			});
+			return confessionsData.map((c) => ({
+				confession: c.confession,
+				confessedFromUser: c.confessedFromUser
+					? (userMap.get(c.confessedFromUser.id) ?? null)
+					: null,
+				confessedToUser: c.confessedToUser ? (userMap.get(c.confessedToUser.id) ?? null) : null,
+				replies: repliesByConfession.get(c.confession.id) ?? [],
+				reportsCount: reportsByConfession.get(c.confession.id) ?? 0,
+				currentUserLiked: likedIds.has(c.confession.id)
+			}));
 		} catch (error) {
 			console.error(error);
 			throw new Error('Failed to fetch confession posts');

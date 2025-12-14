@@ -15,6 +15,7 @@ export async function POST({ request }) {
 				lastMessageId: msg.id
 			})
 			.where(eq(conversations.id, msg.conversationId));
+
 		return json({ success: true });
 	} catch (err) {
 		console.error('Error storing chat:', err);

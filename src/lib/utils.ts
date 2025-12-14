@@ -168,9 +168,16 @@ export function shareToWhatsapp(shareUrl: string) {
 	window.open(url, '_blank');
 }
 
-export function getDisplayName(user?: { firstName: string; lastName: string | null } | null) {
-	if (!user || !user.firstName) return '';
-	return `${user.firstName}${user.lastName ? ` ${user.lastName}` : ''}`;
+export function getDisplayName(
+	user?: { firstName?: string | null; lastName?: string | null } | null
+) {
+	if (!user?.firstName) return 'ANON';
+	return user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName;
+}
+
+export function truncateText(text: string, maxLength: number = 50) {
+	if (text.length <= maxLength) return text;
+	return text.substring(0, maxLength) + '...';
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -54,6 +54,7 @@ export async function validateSessionToken(token: string) {
 				openToRelationships: table.user.openToRelationships,
 				totalConfessions: table.user.totalConfessions,
 				city: table.user.city,
+				lastSeenAt: table.user.lastSeenAt,
 				bio: table.user.bio,
 				anonymous: table.user.anonymous,
 				password: sql<string | null>`NULL`,
