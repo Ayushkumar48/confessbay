@@ -6,9 +6,9 @@ export const dragonfly = new Redis({
 });
 
 dragonfly.on('connect', () => {
-	console.log('🟢 Redis connected');
+	console.log('🟢 Dragonfly connected');
 });
 
 dragonfly.on('error', (err) => {
-	console.error('🔴 Redis error', err);
+	console.error('🔴 Dragonfly error', err);
 });

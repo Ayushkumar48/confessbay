@@ -72,10 +72,16 @@
 	});
 
 	function messageHandler(message: ChatWithReply) {
+		const wasAtBottom = isScrolledToBottom();
 		messages = [...messages, message];
 
 		if (message.senderId === data.user.id && replyingTo) {
 			replyingTo = null;
+		}
+		if (wasAtBottom) {
+			setTimeout(() => {
+				scrollToBottom();
+			}, 0);
 		}
 	}
 
@@ -139,6 +145,13 @@
 			}
 		};
 	});
+	function isScrolledToBottom() {
+		if (!messagesContainer) return true;
+		const threshold = 100;
+		const { scrollTop, scrollHeight, clientHeight } = messagesContainer;
+		return scrollHeight - scrollTop - clientHeight < threshold;
+	}
+
 	function scrollToBottom() {
 		if (messagesContainer) {
 			messagesContainer.scrollTop = messagesContainer.scrollHeight;
