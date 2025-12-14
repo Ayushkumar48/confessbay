@@ -3,7 +3,7 @@ import type { Server as HTTPServer } from 'http';
 import { middleware } from './middleware';
 import { sendMessage } from './sockets/message';
 import { chatStats, startTyping, stopTyping } from './sockets/chat';
-import { markOffline, markOnline, refreshOnline } from '../src/lib/server/redis/presence';
+import { markOffline, markOnline, refreshOnline } from '../src/lib/server/dragonfly/presence';
 
 export default function injectSocketIO(server: HTTPServer) {
 	const io = new Server(server, {

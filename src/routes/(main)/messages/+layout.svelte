@@ -11,7 +11,7 @@
 	import { cn, getDisplayName, getInitials, getWhatsAppTime } from '$lib/utils.js';
 	import { onMount } from 'svelte';
 	import { socketConnection } from '$lib/ws-connection';
-	import type { Conversation } from '$lib/shared';
+	import type { Chat, Conversation } from '$lib/shared';
 
 	let { children, data } = $props();
 	let conversations = $derived(data.conversations);
@@ -26,14 +26,24 @@
 			: conversations
 	);
 	onMount(() => {
-		const handler = (c: Conversation) => {
+		const chatStatHandler = (c: Conversation) => {
 			conversations = conversations.map((item) =>
 				item.conversation.id === c.id ? { ...item, conversation: c } : item
 			);
 		};
-		socketConnection.on('chat-stats', handler);
+		const messageHandler = (message: Chat) => {
+			conversations = conversations.map((c) => {
+				if (c.conversation.id === message.conversationId) {
+					return { ...c, lastMessage: message };
+				}
+				return c;
+			});
+		};
+		socketConnection.on('chat-stats', chatStatHandler);
+		socketConnection.on('message', messageHandler);
 		return () => {
-			socketConnection.off('chat-stats', handler);
+			socketConnection.off('chat-stats', chatStatHandler);
+			socketConnection.off('message', messageHandler);
 		};
 	});
 </script>
@@ -77,7 +87,7 @@
 						? chat.conversation.isMutedByUser1
 						: chat.conversation.isMutedByUser2}
 					{@const isMyMessage = chat.lastMessage.senderId === data.user.id}
-					{@const isRead = chat.lastMessage.readAt !== null}
+					{@const isRead = !!chat.lastMessage.readAt}
 					<li>
 						<a
 							href={resolve(`/messages/${chat.conversation.id}`)}
@@ -102,9 +112,7 @@
 											</p>
 											<div class="flex items-center gap-1">
 												<span class="text-xs text-foreground/60 text-nowrap">
-													{chat.lastMessage.createdAt
-														? getWhatsAppTime(chat.lastMessage.createdAt)
-														: ''}
+													{getWhatsAppTime(chat.otherUser.lastSeenAt)}
 												</span>
 												{#if isMuted}
 													<BellOff class="size-3.5 text-foreground/60" />

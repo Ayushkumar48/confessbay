@@ -57,6 +57,9 @@ export const user = pgTable(
 		bio: text('bio'),
 		anonymous: boolean('anonymous').default(false).notNull(),
 		password: text('password'),
+		lastSeenAt: timestamp('last_seen_at', { withTimezone: true, mode: 'date' })
+			.defaultNow()
+			.notNull(),
 		createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow().notNull()
 	},
 	() => [check('password_or_auth_provider', sql`auth_provider IS NOT NULL OR password IS NOT NULL`)]

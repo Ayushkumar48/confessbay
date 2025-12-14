@@ -1,4 +1,7 @@
+import { user } from '../db/schema';
 import { dragonfly } from '.';
+import { db } from '../db/core';
+import { eq } from 'drizzle-orm';
 
 const TTL = 60; // seconds
 
@@ -11,7 +14,15 @@ export async function refreshOnline(userId: string) {
 }
 
 export async function markOffline(userId: string) {
-	await dragonfly.del(`user:online:${userId}`);
+	await Promise.all([
+		dragonfly.del(`user:online:${userId}`),
+		db
+			.update(user)
+			.set({
+				lastSeenAt: new Date()
+			})
+			.where(eq(user.id, userId))
+	]);
 }
 
 export async function isOnline(userId: string) {

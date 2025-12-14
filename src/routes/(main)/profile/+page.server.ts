@@ -12,14 +12,16 @@ export async function load({ locals }) {
 		redirect(308, resolve('/login'));
 	}
 	const username = locals.user.username;
-	const allConfessions = await getMyConfessionPosts({ userId: locals.user.id });
-	const allFriends = (await getUserFriends({ username })).friends;
-	const followers = (await getUserFollowers({ username })).followers;
-	const following = (await getUserFollowings({ username })).followings;
+	const [allConfessions, allFriendsData, followersData, followingData] = await Promise.all([
+		getMyConfessionPosts({ userId: locals.user.id }),
+		getUserFriends({ username }),
+		getUserFollowers({ username }),
+		getUserFollowings({ username })
+	]);
 	return {
 		allConfessions,
-		allFriends,
-		followers,
-		following
+		allFriends: allFriendsData.friends,
+		followers: followersData.followers,
+		following: followingData.followings
 	};
 }
