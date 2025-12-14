@@ -2,6 +2,7 @@ import { getRequestEvent, query } from '$app/server';
 import { chatsInsertSchema } from '$lib/client/schema';
 import { db } from '$lib/server/db';
 import { decryptMessage } from '$lib/server/encryption-utils';
+import { isOnline } from '$lib/server/redis/presence';
 import { getOtherUser } from '$lib/server/utils';
 import { chats, conversations } from '$lib/shared';
 import { and, desc, eq } from 'drizzle-orm';
@@ -86,9 +87,11 @@ export const getConversationForChat = query(
 				success: false,
 				message: 'User not found',
 				conversation: null,
-				currentChatUser: null
+				currentChatUser: null,
+				isUserOnline: false
 			};
-		return { success: true, conversation: res.conversation, currentChatUser };
+		const isUserOnline = await isOnline(otherUserId);
+		return { success: true, conversation: res.conversation, currentChatUser, isUserOnline };
 	}
 );
 

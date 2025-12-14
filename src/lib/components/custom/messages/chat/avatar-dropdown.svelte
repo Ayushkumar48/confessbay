@@ -28,8 +28,14 @@
 	let {
 		currentChatUser,
 		conversation = $bindable(),
-		isUserTyping = $bindable()
-	}: { currentChatUser: User; conversation: Conversation; isUserTyping: boolean } = $props();
+		isUserTyping = $bindable(),
+		isUserOnline = $bindable(false)
+	}: {
+		currentChatUser: User;
+		conversation: Conversation;
+		isUserTyping: boolean;
+		isUserOnline?: boolean;
+	} = $props();
 
 	const displayName = $derived(getDisplayName(currentChatUser));
 	const initials = $derived(getInitials(displayName));
@@ -85,8 +91,26 @@
 			conversation = c;
 		};
 		socketConnection.on('chat-stats', handler);
+
+		const onlineHandler = ({ userId }: { userId: string }) => {
+			if (userId === currentChatUser.id) {
+				isUserOnline = true;
+			}
+		};
+
+		const offlineHandler = ({ userId }: { userId: string }) => {
+			if (userId === currentChatUser.id) {
+				isUserOnline = false;
+			}
+		};
+
+		socketConnection.on('presence:online', onlineHandler);
+		socketConnection.on('presence:offline', offlineHandler);
+
 		return () => {
 			socketConnection.off('chat-stats', handler);
+			socketConnection.off('presence:online', onlineHandler);
+			socketConnection.off('presence:offline', offlineHandler);
 		};
 	});
 	function emitChatStats(action: string) {
@@ -110,10 +134,16 @@
 					class="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-red-500 border-2 border-background"
 					title={isBlocked ? 'You blocked this user' : 'This user blocked you'}
 				></div>
-				<!-- {:else}
+			{:else if isUserOnline}
 				<div
-					class="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-background"
-				></div> -->
+					class="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-background animate-pulse"
+					title="Online"
+				></div>
+			{:else}
+				<div
+					class="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-gray-400 border-2 border-background"
+					title="Offline"
+				></div>
 			{/if}
 		</div>
 		<div class="min-w-0 flex-1">
@@ -147,9 +177,12 @@
 						</span>
 						<span class="font-medium">typing...</span>
 					</span>
-				{:else}
+				{:else if isUserOnline}
 					<span class="inline-block h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse"></span>
-					Active now
+					Online
+				{:else}
+					<span class="inline-block h-1.5 w-1.5 rounded-full bg-gray-400"></span>
+					Offline
 				{/if}
 			</p>
 		</div>

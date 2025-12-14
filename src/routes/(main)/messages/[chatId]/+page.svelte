@@ -22,7 +22,7 @@
 	type Message = z.infer<ChatsInsertSchema>;
 	// states
 	const { data } = $props();
-	let { currentChatUser, conversation, messages, chatId } = $derived(data);
+	let { currentChatUser, conversation, messages, chatId, isUserOnline } = $derived(data);
 	let messagesContainer: HTMLDivElement | undefined = $state();
 	let newMessage = $state('');
 	const currentUserId = $derived(data.user.id);
@@ -96,7 +96,12 @@
 <main class="flex flex-1 flex-col">
 	<div class="flex items-center justify-between gap-3 border-b border-border px-6 py-2">
 		{#if currentChatUser && conversation}
-			<AvatarDropdown {currentChatUser} bind:conversation bind:isUserTyping={isTyping} />
+			<AvatarDropdown
+				{currentChatUser}
+				bind:conversation
+				bind:isUserTyping={isTyping}
+				{isUserOnline}
+			/>
 		{/if}
 
 		<div class="flex items-center gap-2">
