@@ -25,25 +25,80 @@
 				)
 			: conversations
 	);
+	function chatStatHandler(c: Conversation) {
+		conversations = conversations.map((item) =>
+			item.conversation.id === c.id ? { ...item, conversation: c } : item
+		);
+	}
+	function messageHandler(message: Chat) {
+		conversations = conversations.map((c) => {
+			if (c.conversation.id === message.conversationId) {
+				const isUser1 = c.conversation.userId1 === data.user.id;
+				const isMessageFromMe = message.senderId === data.user.id;
+
+				const updatedConversation = !isMessageFromMe
+					? {
+							...c.conversation,
+							unreadCountForUser1: isUser1
+								? c.conversation.unreadCountForUser1 + 1
+								: c.conversation.unreadCountForUser1,
+							unreadCountForUser2: !isUser1
+								? c.conversation.unreadCountForUser2 + 1
+								: c.conversation.unreadCountForUser2
+						}
+					: c.conversation;
+
+				return {
+					...c,
+					conversation: updatedConversation,
+					lastMessage: {
+						...message,
+						message: message.message ?? undefined
+					}
+				};
+			}
+			return c;
+		});
+	}
+	function messagesReadHandler({ messageIds }: { messageIds: string[] }) {
+		conversations = conversations.map((c) => {
+			if (c.lastMessage?.id && messageIds.includes(c.lastMessage.id)) {
+				const isUser1 = c.conversation.userId1 === data.user.id;
+				const isMessageFromOther = c.lastMessage.senderId !== data.user.id;
+				const updatedConversation = isMessageFromOther
+					? {
+							...c.conversation,
+							unreadCountForUser1:
+								isUser1 && c.conversation.unreadCountForUser1 > 0
+									? c.conversation.unreadCountForUser1 - 1
+									: c.conversation.unreadCountForUser1,
+							unreadCountForUser2:
+								!isUser1 && c.conversation.unreadCountForUser2 > 0
+									? c.conversation.unreadCountForUser2 - 1
+									: c.conversation.unreadCountForUser2
+						}
+					: c.conversation;
+
+				return {
+					...c,
+					conversation: updatedConversation,
+					lastMessage: {
+						...c.lastMessage,
+						readAt: new Date()
+					}
+				};
+			}
+			return c;
+		});
+	}
 	onMount(() => {
-		const chatStatHandler = (c: Conversation) => {
-			conversations = conversations.map((item) =>
-				item.conversation.id === c.id ? { ...item, conversation: c } : item
-			);
-		};
-		const messageHandler = (message: Chat) => {
-			conversations = conversations.map((c) => {
-				if (c.conversation.id === message.conversationId) {
-					return { ...c, lastMessage: message };
-				}
-				return c;
-			});
-		};
 		socketConnection.on('chat-stats', chatStatHandler);
 		socketConnection.on('message', messageHandler);
+		socketConnection.on('messages:read', messagesReadHandler);
 		return () => {
 			socketConnection.off('chat-stats', chatStatHandler);
 			socketConnection.off('message', messageHandler);
+			socketConnection.off('messages:read', messagesReadHandler);
 		};
 	});
 </script>

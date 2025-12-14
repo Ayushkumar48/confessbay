@@ -84,7 +84,9 @@ export const friends = pgTable(
 		userId2: text('user_id2')
 			.notNull()
 			.references(() => user.id, { onDelete: 'cascade' }),
-		requestedBy: text('requested_by').references(() => user.id),
+		requestedBy: text('requested_by')
+			.references(() => user.id)
+			.notNull(),
 		status: friendshipStatusEnum('status').default('pending').notNull(),
 		acceptedAt: timestamp('accepted_at', { withTimezone: true, mode: 'date' }),
 		createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow().notNull()
