@@ -12,17 +12,21 @@
 	import ReplyIcon from '@lucide/svelte/icons/reply';
 	import SmileIcon from '@lucide/svelte/icons/smile';
 	import DownloadIcon from '@lucide/svelte/icons/download';
+	import { useMessageVisibility } from '$lib/composables/use-message-visibility.svelte';
 
 	let {
 		m,
 		user,
-		onReply
+		onReply,
+		onMessageVisible
 	}: {
 		m: ChatWithReply;
 		user: User;
 		onReply?: (message: Chat) => void;
+		onMessageVisible?: (messageId: string) => void;
 	} = $props();
 	let messageOptionsOpen = $state(false);
+	let messageElement = $state<HTMLDivElement | null>(null);
 
 	function getReplyName() {
 		if (!m.reply) return '';
@@ -55,9 +59,20 @@
 	function handleDownload() {
 		console.log('Download message:', m.id);
 	}
+
+	useMessageVisibility(
+		() => messageElement,
+		m.id,
+		m.senderId === user.id,
+		!!m.readAt,
+		(messageId) => {
+			onMessageVisible?.(messageId);
+		}
+	);
 </script>
 
 <div
+	bind:this={messageElement}
 	class={cn('flex', m.senderId === user.id ? 'justify-end' : 'justify-start')}
 	role="button"
 	tabindex="0"

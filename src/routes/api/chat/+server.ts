@@ -58,7 +58,6 @@ export async function POST({ request }) {
 				reply: replyObject
 			};
 
-			console.log('API returning enriched message:', JSON.stringify(enrichedMessage, null, 2));
 			return json(enrichedMessage);
 		}
 

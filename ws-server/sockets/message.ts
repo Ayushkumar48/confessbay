@@ -42,12 +42,10 @@ export function sendMessage(io: Server, socket: Socket) {
 
 				if (response.ok) {
 					const savedMessage = await response.json();
-					console.log('Saved message from API:', JSON.stringify(savedMessage, null, 2));
 					const emittedMessage = {
 						...savedMessage,
 						message: message
 					};
-					console.log('Emitting message:', JSON.stringify(emittedMessage, null, 2));
 					io.to(chatId).emit('message', emittedMessage);
 				} else {
 					console.error('Error saving message to database:', response.statusText);

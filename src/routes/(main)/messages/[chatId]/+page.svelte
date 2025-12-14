@@ -35,11 +35,31 @@
 	let isUserTyping = $state(false);
 	const debouncedTyping = new Debounced(() => isUserTyping, 1000);
 
+	let pendingReadMessageIds = $state<Set<string>>(new Set());
+	let readReceiptTimer: ReturnType<typeof setTimeout> | null = null;
+	let hasScrolledToUnread = $state(false);
+
 	$effect(() => {
-		if (messagesContainer && messages && messages.length > 0) {
+		if (messagesContainer && messages && messages.length > 0 && !hasScrolledToUnread) {
 			setTimeout(() => {
-				scrollToBottom();
-			}, 0);
+				if (!messagesContainer) return;
+
+				const firstUnreadIndex = messages.findIndex(
+					(m) => m.senderId !== data.user.id && !m.readAt
+				);
+
+				if (firstUnreadIndex !== -1) {
+					const messageElements = messagesContainer.querySelectorAll('[data-message-id]');
+					const firstUnreadElement = messageElements[firstUnreadIndex];
+					if (firstUnreadElement) {
+						firstUnreadElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+						hasScrolledToUnread = true;
+					}
+				} else {
+					scrollToBottom();
+					hasScrolledToUnread = true;
+				}
+			}, 100);
 		}
 	});
 
@@ -50,6 +70,7 @@
 			socketConnection.emit('typing:stop', chatId);
 		}
 	});
+
 	function messageHandler(message: ChatWithReply) {
 		messages = [...messages, message];
 
@@ -57,9 +78,44 @@
 			replyingTo = null;
 		}
 	}
+
+	function messagesReadHandler({ messageIds }: { messageIds: string[] }) {
+		messages = messages.map((m) => {
+			if (messageIds.includes(m.id)) {
+				return { ...m, readAt: new Date() };
+			}
+			return m;
+		});
+	}
+
+	function handleMessageVisible(messageId: string) {
+		pendingReadMessageIds.add(messageId);
+		if (readReceiptTimer) {
+			clearTimeout(readReceiptTimer);
+		}
+		readReceiptTimer = setTimeout(() => {
+			if (pendingReadMessageIds.size > 0) {
+				const messageIds = Array.from(pendingReadMessageIds);
+				socketConnection.emit('messages:read', {
+					chatId,
+					messageIds
+				});
+				messages = messages.map((m) => {
+					if (messageIds.includes(m.id)) {
+						return { ...m, readAt: new Date() };
+					}
+					return m;
+				});
+
+				pendingReadMessageIds.clear();
+			}
+		}, 500);
+	}
+
 	function typingStartHandler() {
 		isTyping = true;
 	}
+
 	function typingStopHandler() {
 		isTyping = false;
 	}
@@ -67,14 +123,20 @@
 		socketConnection.joinRoom(chatId);
 
 		socketConnection.on('message', messageHandler);
+		socketConnection.on('messages:read', messagesReadHandler);
 		socketConnection.on('typing:start', typingStartHandler);
 		socketConnection.on('typing:stop', typingStopHandler);
 
 		return () => {
 			socketConnection.off('message', messageHandler);
+			socketConnection.off('messages:read', messagesReadHandler);
 			socketConnection.off('typing:start', typingStartHandler);
 			socketConnection.off('typing:stop', typingStopHandler);
 			socketConnection.leaveRoom(chatId);
+
+			if (readReceiptTimer) {
+				clearTimeout(readReceiptTimer);
+			}
 		};
 	});
 	function scrollToBottom() {
@@ -139,7 +201,14 @@
 	>
 		{#if messages && messages.length > 0}
 			{#each messages as m (m.id)}
-				<Message {m} user={data.user} onReply={handleReplyTo} />
+				<div data-message-id={m.id}>
+					<Message
+						{m}
+						user={data.user}
+						onReply={handleReplyTo}
+						onMessageVisible={handleMessageVisible}
+					/>
+				</div>
 			{/each}
 		{:else}
 			<div class="text-center text-foreground/60">No messages yet — say hello 👋</div>
