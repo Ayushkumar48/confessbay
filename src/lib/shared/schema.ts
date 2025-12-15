@@ -26,7 +26,7 @@ export const notificationTypeEnum = pgEnum('notification_type_enum', enums.notif
 export const chatMessageTypeEnum = pgEnum('chat_message_type_enum', enums.chatMessageType);
 
 export const colleges = pgTable('colleges', {
-	id: text('id').primaryKey(),
+	id: text('id').primaryKey().notNull(),
 	name: text('name').unique().notNull(),
 	domain: text('domain').unique(), // e.g., '@iitd.ac.in'
 	city: text('city'),
@@ -67,7 +67,7 @@ export const user = pgTable(
 );
 
 export const session = pgTable('session', {
-	id: text('id').primaryKey(),
+	id: text('id').primaryKey().notNull(),
 	userId: text('user_id')
 		.notNull()
 		.references(() => user.id, { onDelete: 'cascade' }),

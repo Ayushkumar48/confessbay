@@ -13,6 +13,11 @@
 	import { socketConnection } from '$lib/ws-connection';
 	import type { Chat, Conversation } from '$lib/shared';
 
+	type UnreadUpdateEvent = {
+		conversationId: string;
+		unreadCount: number;
+	};
+
 	let { children, data } = $props();
 	let conversations = $derived(data.conversations);
 
@@ -33,24 +38,8 @@
 	function messageHandler(message: Chat) {
 		conversations = conversations.map((c) => {
 			if (c.conversation.id === message.conversationId) {
-				const isUser1 = c.conversation.userId1 === data.user.id;
-				const isMessageFromMe = message.senderId === data.user.id;
-
-				const updatedConversation = !isMessageFromMe
-					? {
-							...c.conversation,
-							unreadCountForUser1: isUser1
-								? c.conversation.unreadCountForUser1 + 1
-								: c.conversation.unreadCountForUser1,
-							unreadCountForUser2: !isUser1
-								? c.conversation.unreadCountForUser2 + 1
-								: c.conversation.unreadCountForUser2
-						}
-					: c.conversation;
-
 				return {
 					...c,
-					conversation: updatedConversation,
 					lastMessage: {
 						...message,
 						message: message.message ?? undefined
@@ -63,25 +52,8 @@
 	function messagesReadHandler({ messageIds }: { messageIds: string[] }) {
 		conversations = conversations.map((c) => {
 			if (c.lastMessage?.id && messageIds.includes(c.lastMessage.id)) {
-				const isUser1 = c.conversation.userId1 === data.user.id;
-				const isMessageFromOther = c.lastMessage.senderId !== data.user.id;
-				const updatedConversation = isMessageFromOther
-					? {
-							...c.conversation,
-							unreadCountForUser1:
-								isUser1 && c.conversation.unreadCountForUser1 > 0
-									? c.conversation.unreadCountForUser1 - 1
-									: c.conversation.unreadCountForUser1,
-							unreadCountForUser2:
-								!isUser1 && c.conversation.unreadCountForUser2 > 0
-									? c.conversation.unreadCountForUser2 - 1
-									: c.conversation.unreadCountForUser2
-						}
-					: c.conversation;
-
 				return {
 					...c,
-					conversation: updatedConversation,
 					lastMessage: {
 						...c.lastMessage,
 						readAt: new Date()
@@ -91,14 +63,34 @@
 			return c;
 		});
 	}
+	function unreadUpdateHandler({ conversationId, unreadCount }: UnreadUpdateEvent) {
+		conversations = conversations.map((c) => {
+			if (c.conversation.id !== conversationId) return c;
+
+			const isUser1 = c.conversation.userId1 === data.user.id;
+
+			return {
+				...c,
+				conversation: {
+					...c.conversation,
+					unreadCountForUser1: isUser1 ? unreadCount : c.conversation.unreadCountForUser1,
+					unreadCountForUser2: !isUser1 ? unreadCount : c.conversation.unreadCountForUser2
+				}
+			};
+		});
+	}
+
 	onMount(() => {
 		socketConnection.on('chat-stats', chatStatHandler);
 		socketConnection.on('message', messageHandler);
 		socketConnection.on('messages:read', messagesReadHandler);
+		socketConnection.on('unread:update', unreadUpdateHandler);
+
 		return () => {
 			socketConnection.off('chat-stats', chatStatHandler);
 			socketConnection.off('message', messageHandler);
 			socketConnection.off('messages:read', messagesReadHandler);
+			socketConnection.off('unread:update', unreadUpdateHandler);
 		};
 	});
 </script>
@@ -147,6 +139,26 @@
 						<a
 							href={resolve(`/messages/${chat.conversation.id}`)}
 							class="flex w-full cursor-pointer items-center gap-3 px-4 py-3 transition-colors hover:bg-accent/50 hover:ring-[0.1px]"
+							onclick={() => {
+								conversations = conversations.map((c) =>
+									c.conversation.id === chat.conversation.id
+										? {
+												...c,
+												conversation: {
+													...c.conversation,
+													unreadCountForUser1:
+														c.conversation.userId1 === data.user.id
+															? 0
+															: c.conversation.unreadCountForUser1,
+													unreadCountForUser2:
+														c.conversation.userId2 === data.user.id
+															? 0
+															: c.conversation.unreadCountForUser2
+												}
+											}
+										: c
+								);
+							}}
 						>
 							<Avatar class="flex-none">
 								{#if chat.otherUser.avatar}

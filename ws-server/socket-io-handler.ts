@@ -5,6 +5,7 @@ import { sendMessage } from './sockets/message';
 import { chatStats, startTyping, stopTyping } from './sockets/chat';
 import { markMessagesAsRead } from './sockets/read-receipt';
 import { markOffline, markOnline, refreshOnline } from '../src/lib/server/dragonfly/presence';
+import { startPgListener } from '../src/lib/server/db/pg-listener';
 
 export default function injectSocketIO(server: HTTPServer) {
 	const io = new Server(server, {
@@ -14,8 +15,14 @@ export default function injectSocketIO(server: HTTPServer) {
 		}
 	});
 	io.use(middleware);
+	startPgListener(io);
 	io.on('connection', (socket) => {
-		const userId = socket.data.userId;
+		const userId = socket.data.userId as string | undefined;
+		if (!userId) {
+			socket.disconnect(true);
+			return;
+		}
+		socket.join(userId);
 		markOnline(userId);
 		socket.broadcast.emit('presence:online', { userId });
 		const heartbeat = setInterval(() => {
