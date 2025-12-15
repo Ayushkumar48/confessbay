@@ -61,7 +61,7 @@
 				onclick={() => {
 					navigator
 						.share({
-							title: 'Confession on Coveat',
+							title: 'Confession on ConfessBay',
 							text: 'Check out this confession',
 							url: shareUrl
 						})

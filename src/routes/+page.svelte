@@ -12,7 +12,7 @@
 				<div class="flex h-8 w-8 items-center justify-center rounded-full bg-primary">
 					<span class="font-bold text-primary-foreground">C</span>
 				</div>
-				<span class="text-xl font-bold">Coveat</span>
+				<span class="text-xl font-bold">ConfessBay</span>
 			</div>
 			<div class="flex items-center gap-4">
 				<a href={resolve('/feed')} class="text-sm transition-colors hover:text-primary">Dashboard</a
@@ -85,7 +85,7 @@
 	<!-- Features Section -->
 	<section class="border-t border-border bg-secondary/20 py-24">
 		<div class="mx-auto max-w-7xl px-6">
-			<h2 class="mb-16 text-center text-4xl font-bold">Why Coveat?</h2>
+			<h2 class="mb-16 text-center text-4xl font-bold">Why ConfessBay?</h2>
 			<div class="grid gap-8 md:grid-cols-3">
 				<div
 					class="rounded-xl border border-border bg-card p-8 transition-colors hover:border-primary"
@@ -136,7 +136,7 @@
 		<div class="mx-auto max-w-7xl px-6">
 			<div class="mb-12 grid gap-8 md:grid-cols-4">
 				<div>
-					<h4 class="mb-4 font-bold">Coveat</h4>
+					<h4 class="mb-4 font-bold">ConfessBay</h4>
 					<p class="text-sm text-foreground/60">Express freely, connect genuinely.</p>
 				</div>
 				<div>
@@ -174,7 +174,7 @@
 				</div>
 			</div>
 			<div class="border-t border-border pt-8 text-center text-sm text-foreground/60">
-				<p>&copy; 2025 Coveat. All rights reserved.</p>
+				<p>&copy; 2025 ConfessBay. All rights reserved.</p>
 			</div>
 		</div>
 	</footer>

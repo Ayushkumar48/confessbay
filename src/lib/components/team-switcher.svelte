@@ -15,7 +15,7 @@
 				<AudioWaveform class="size-4" />
 			</div>
 			<div class="grid flex-1 text-left text-sm leading-tight">
-				<span class="truncate font-medium"> Coveat </span>
+				<span class="truncate font-medium"> ConfessBay </span>
 				<span class="truncate text-xs">See your college confessions</span>
 			</div>
 		</Sidebar.MenuButton>

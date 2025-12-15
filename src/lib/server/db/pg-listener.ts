@@ -18,8 +18,6 @@ export async function startPgListener(io: SocketIOServer): Promise<void> {
 	await client.connect();
 	await client.query('LISTEN conversation_unread_changed');
 
-	console.log('📡 Listening on conversation_unread_changed');
-
 	client.on('notification', (msg: Notification) => {
 		if (!msg.payload) return;
 

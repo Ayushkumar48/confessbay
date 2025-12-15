@@ -78,6 +78,13 @@
       "when": 1765772487174,
       "tag": "0010_magenta_ted_forrester",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1765821268539,
+      "tag": "0011_cool_namora",
+      "breakpoints": true
     }
   ]
 }

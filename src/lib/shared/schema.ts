@@ -25,13 +25,18 @@ export const reportStatusEnum = pgEnum('report_status_enum', enums.reportStatus)
 export const notificationTypeEnum = pgEnum('notification_type_enum', enums.notificationType);
 export const chatMessageTypeEnum = pgEnum('chat_message_type_enum', enums.chatMessageType);
 
-export const colleges = pgTable('colleges', {
-	id: text('id').primaryKey().notNull(),
-	name: text('name').unique().notNull(),
-	domain: text('domain').unique(), // e.g., '@iitd.ac.in'
-	city: text('city'),
-	state: text('state')
-});
+export const colleges = pgTable(
+	'colleges',
+	{
+		id: text('id').primaryKey().notNull(),
+		name: text('name').unique().notNull(),
+		domain: text('domain').unique(), // e.g., '@iitd.ac.in'
+		city: text('city'),
+		state: text('state'),
+		country: text('country')
+	},
+	(table) => [index('idx_college_domain').on(table.domain)]
+);
 
 export const user = pgTable(
 	'user',
@@ -168,7 +173,7 @@ export const chats = pgTable(
 		deliveredAt: timestamp('delivered_at', {
 			withTimezone: true,
 			mode: 'date'
-		}),
+		}).notNull(),
 		readAt: timestamp('read_at', {
 			withTimezone: true,
 			mode: 'date'

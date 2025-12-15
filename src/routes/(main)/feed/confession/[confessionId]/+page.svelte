@@ -77,7 +77,7 @@
 </script>
 
 <svelte:head>
-	<title>Confession • Coveat</title>
+	<title>Confession • ConfessBay</title>
 	<meta name="description" content="View confession details and replies" />
 </svelte:head>
 

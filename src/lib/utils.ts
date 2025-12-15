@@ -152,7 +152,7 @@ export function createConversationId(userA: string, userB: string) {
 }
 
 export function shareToTwitter(shareUrl: string) {
-	const text = `Check out this confession on Coveat:\n${shareUrl}`;
+	const text = `Check out this confession on ConfessBay:\n${shareUrl}`;
 	const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
 	window.open(url, '_blank');
 }
@@ -163,7 +163,7 @@ export function shareToFacebook(shareUrl: string) {
 }
 
 export function shareToWhatsapp(shareUrl: string) {
-	const text = `Check out this confession on Coveat:\n${shareUrl}`;
+	const text = `Check out this confession on ConfessBay:\n${shareUrl}`;
 	const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
 	window.open(url, '_blank');
 }
