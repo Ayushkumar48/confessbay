@@ -6,7 +6,7 @@
 	import { cn } from '$lib/utils';
 	let { children } = $props();
 	let currentPathContent = $derived(
-		[...generalLinks, ...accountLinks].find((item) => page.url.pathname.endsWith(item.url))
+		[...generalLinks, ...accountLinks].find((item) => page.url.pathname.startsWith(item.url))
 	);
 </script>
 

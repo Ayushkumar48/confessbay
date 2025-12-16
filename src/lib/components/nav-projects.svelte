@@ -19,7 +19,7 @@
 					<Sidebar.MenuButton
 						class={cn(
 							'hover:bg-accent hover:ring-1 hover:ring-ring',
-							currentPath === item.url &&
+							currentPath.startsWith(item.url) &&
 								'cursor-default bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground hover:ring-0'
 						)}
 					>
