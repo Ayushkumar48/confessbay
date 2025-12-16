@@ -222,7 +222,7 @@
 			class="flex h-9 w-full items-center justify-start rounded-md px-2 py-1.5 text-sm text-destructive hover:bg-accent hover:text-destructive"
 		>
 			<TrashIcon class="mr-2 h-4 w-4" />
-			{isSender ? 'Delete' : 'Delete for me'}
+			{isSender ? 'Delete for everyone' : 'Delete for me'}
 		</Dialog.Trigger>
 		<Dialog.Content class="sm:max-w-[425px]">
 			<Dialog.Header>

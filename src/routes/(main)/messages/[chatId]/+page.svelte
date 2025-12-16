@@ -8,7 +8,7 @@
 	import XIcon from '@lucide/svelte/icons/x';
 	import { cn, getDisplayName, truncateText } from '$lib/utils.js';
 	import { socketConnection } from '../../../../lib/ws-connection';
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import AvatarDropdown from '$lib/components/custom/messages/chat/avatar-dropdown.svelte';
 	import type { Chat, ChatWithReply } from '$lib/shared/schema.js';
 	import { Debounced } from 'runed';
@@ -71,17 +71,16 @@
 		}
 	});
 
-	function messageHandler(message: ChatWithReply) {
+	async function messageHandler(message: ChatWithReply) {
 		const wasAtBottom = isScrolledToBottom();
 		messages = [...messages, message];
 
 		if (message.senderId === data.user.id && replyingTo) {
 			replyingTo = null;
 		}
-		if (wasAtBottom) {
-			setTimeout(() => {
-				scrollToBottom();
-			}, 0);
+		await tick();
+		if (message.senderId === data.user.id || wasAtBottom) {
+			scrollToBottom();
 		}
 	}
 
