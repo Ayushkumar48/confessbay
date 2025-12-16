@@ -125,6 +125,27 @@
 	function typingStopHandler() {
 		isTyping = false;
 	}
+	function handleMessageDeletedEvent({
+		messageId,
+		deleterId,
+		senderId
+	}: {
+		messageId: string;
+		deleterId: string;
+		senderId: string;
+	}) {
+		messages = messages.map((m) => {
+			if (m.id === messageId) {
+				if (senderId === deleterId) {
+					return { ...m, isDeletedBySender: true };
+				} else {
+					return { ...m, isDeletedByReceiver: true };
+				}
+			}
+			return m;
+		});
+	}
+
 	onMount(() => {
 		socketConnection.joinRoom(chatId);
 
@@ -132,12 +153,14 @@
 		socketConnection.on('messages:read', messagesReadHandler);
 		socketConnection.on('typing:start', typingStartHandler);
 		socketConnection.on('typing:stop', typingStopHandler);
+		socketConnection.on('message:deleted', handleMessageDeletedEvent);
 
 		return () => {
 			socketConnection.off('message', messageHandler);
 			socketConnection.off('messages:read', messagesReadHandler);
 			socketConnection.off('typing:start', typingStartHandler);
 			socketConnection.off('typing:stop', typingStopHandler);
+			socketConnection.off('message:deleted', handleMessageDeletedEvent);
 			socketConnection.leaveRoom(chatId);
 
 			if (readReceiptTimer) {
@@ -190,6 +213,19 @@
 		replyingTo = null;
 	}
 
+	function handleMessageDeleted(messageId: string) {
+		messages = messages.map((m) => {
+			if (m.id === messageId) {
+				if (m.senderId === data.user.id) {
+					return { ...m, isDeletedBySender: true };
+				} else {
+					return { ...m, isDeletedByReceiver: true };
+				}
+			}
+			return m;
+		});
+	}
+
 	function getReplyName(message: Chat) {
 		if (message.senderId === data.user.id) return 'You';
 		return currentChatUser?.firstName || 'Unknown';
@@ -220,6 +256,8 @@
 						user={data.user}
 						onReply={handleReplyTo}
 						onMessageVisible={handleMessageVisible}
+						{chatId}
+						onMessageDeleted={handleMessageDeleted}
 					/>
 				</div>
 			{/each}

@@ -1,7 +1,7 @@
 import { Server } from 'socket.io';
 import type { Server as HTTPServer } from 'http';
 import { middleware } from './middleware';
-import { sendMessage } from './sockets/message';
+import { sendMessage, deleteMessage } from './sockets/message';
 import { chatStats, startTyping, stopTyping } from './sockets/chat';
 import { markMessagesAsRead } from './sockets/read-receipt';
 import { markOffline, markOnline, refreshOnline } from '../src/lib/server/dragonfly/presence';
@@ -33,6 +33,7 @@ export default function injectSocketIO(server: HTTPServer) {
 			socket.join(chatId);
 		});
 		socket.on('message', sendMessage(io, socket));
+		socket.on('message:delete', deleteMessage(io, socket));
 		socket.on('messages:read', markMessagesAsRead(io, socket));
 		socket.on('chat-stats', chatStats(io, socket));
 		socket.on('typing:start', startTyping(socket));

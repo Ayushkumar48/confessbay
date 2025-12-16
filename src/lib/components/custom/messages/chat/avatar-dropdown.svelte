@@ -136,7 +136,7 @@
 				></div>
 			{:else if isUserOnline}
 				<div
-					class="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-background animate-pulse"
+					class="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-background"
 					title="Online"
 				></div>
 			{:else}
@@ -178,7 +178,7 @@
 						<span class="font-medium">typing...</span>
 					</span>
 				{:else if isUserOnline}
-					<span class="inline-block h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse"></span>
+					<span class="inline-block h-1.5 w-1.5 rounded-full bg-green-500"></span>
 					Online
 				{:else}
 					<span class="inline-block h-1.5 w-1.5 rounded-full bg-gray-400"></span>

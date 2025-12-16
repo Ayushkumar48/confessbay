@@ -153,3 +153,26 @@ export const getMessagesWithChatId = query(z.object({ chatId: z.string() }), asy
 
 	return decrypted.reverse();
 });
+
+export const deleteMessage = query(
+	z.object({ messageId: z.string(), deleterId: z.string(), senderId: z.string() }),
+	async ({ messageId, deleterId, senderId }) => {
+		if (deleterId === senderId) {
+			await db
+				.update(chats)
+				.set({
+					isDeletedBySender: true,
+					updatedAt: new Date()
+				})
+				.where(eq(chats.id, messageId));
+		} else {
+			await db
+				.update(chats)
+				.set({
+					isDeletedByReceiver: true,
+					updatedAt: new Date()
+				})
+				.where(eq(chats.id, messageId));
+		}
+	}
+);

@@ -72,7 +72,7 @@ const confessionsInsertSchema = createInsertSchema(table.confessions, {
 });
 
 const chatsInsertSchema = createInsertSchema(table.chats, {
-	deliveredAt: z.coerce.date().nullable().optional(),
+	deliveredAt: z.coerce.date(),
 	readAt: z.coerce.date().nullable().optional(),
 	createdAt: z.coerce.date(),
 	updatedAt: z.coerce.date()

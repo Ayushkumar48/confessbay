@@ -179,7 +179,8 @@ export const chats = pgTable(
 			mode: 'date'
 		}),
 		repliedTo: text('replied_to'),
-		isDeleted: boolean('is_deleted').default(false).notNull(),
+		isDeletedBySender: boolean('is_deleted_by_sender').default(false).notNull(),
+		isDeletedByReceiver: boolean('is_deleted_by_receiver').default(false).notNull(),
 		createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow().notNull(),
 		updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).defaultNow().notNull()
 	},

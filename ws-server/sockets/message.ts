@@ -77,3 +77,52 @@ export function sendMessage(io: Server, socket: Socket) {
 		}
 	};
 }
+
+export function deleteMessage(io: Server, socket: Socket) {
+	return async ({
+		chatId,
+		messageId,
+		senderId,
+		userId
+	}: {
+		chatId: string;
+		messageId: string;
+		senderId: string;
+		userId: string;
+	}) => {
+		const deleterId = socket.data.userId;
+
+		try {
+			const response = await fetch('http://localhost:5173/api/chat/delete', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					messageId,
+					deleterId,
+					senderId,
+					userId
+				})
+			});
+
+			if (response.ok) {
+				io.to(chatId).emit('message:deleted', {
+					messageId,
+					deleterId,
+					senderId
+				});
+			} else {
+				console.error('Error deleting message from database:', response.statusText);
+				socket.emit('message:delete:error', {
+					messageId,
+					error: 'Failed to delete message'
+				});
+			}
+		} catch (error) {
+			console.error('Error deleting message from database:', error);
+			socket.emit('message:delete:error', {
+				messageId,
+				error: 'Failed to delete message'
+			});
+		}
+	};
+}
