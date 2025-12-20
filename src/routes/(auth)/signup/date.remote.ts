@@ -2,7 +2,6 @@ import { query } from '$app/server';
 import { user } from '$lib/shared';
 import { eq, or } from 'drizzle-orm';
 import { generateRandomAvatar, generateUserId } from '$lib/utils';
-import { hash } from '@node-rs/argon2';
 import { uploadSvg } from '$lib/server/auth';
 import { db } from '$lib/server/db';
 import { userInsertSchema } from '$lib/client/schema';
@@ -29,12 +28,7 @@ export const signup = query(userInsertSchema, async (input) => {
 				return { success: false, message: 'User already exists' };
 			}
 		}
-		const passwordHash = await hash(input.password, {
-			memoryCost: 19456,
-			timeCost: 2,
-			outputLen: 32,
-			parallelism: 1
-		});
+		const passwordHash = await Bun.password.hash(input.password);
 		let avatarKey = '';
 		const userId = generateUserId();
 		if (!input.avatar) {
