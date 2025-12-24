@@ -7,6 +7,7 @@ import {
 	reports,
 	user,
 	type ConfessionWithToAndFrom,
+	type ReplyWithUser,
 	type User,
 	type UserLite
 } from '$lib/server/db/schema';
@@ -16,14 +17,6 @@ import { getSvgUrl } from '$lib/server/auth';
 import z from 'zod';
 import { confessionsInsertSchema, repliesInsertSchema } from '$lib/client/schema';
 import { generateUserId } from '$lib/utils';
-
-type ReplyWithUser = {
-	id: string;
-	confessionId: string;
-	message: string;
-	createdAt: Date;
-	user: User | UserLite | null;
-};
 
 export const getConfessionPosts = query(
 	z.object({

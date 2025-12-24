@@ -2,7 +2,7 @@ import type { Confession, User } from './schema';
 
 export * from './schema';
 
-type ReplyWithUser = {
+export type ReplyWithUser = {
 	id: string;
 	confessionId: string;
 	message: string;

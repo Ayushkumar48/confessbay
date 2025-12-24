@@ -25,7 +25,7 @@
 					>
 						{#snippet child({ props })}
 							<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-							<a href={item.url} {...props} data-sveltekit-preload-code>
+							<a href={item.url} {...props} data-sveltekit-preload-code="hover">
 								<item.icon class={cn(item.colorClass)} />
 								<span>{item.name}</span>
 							</a>

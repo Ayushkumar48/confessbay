@@ -128,135 +128,127 @@
 
 		<Tabs.Content value="followers">
 			<h3 class="mb-4 text-lg font-semibold">Followers</h3>
-			{#if followers && followers.length > 0}
-				<ScrollArea class="max-h-96">
-					<ul class="space-y-3">
-						{#each followers as f (f.user.id)}
-							<li>
-								<div class="flex items-center gap-3 rounded-lg p-3 transition hover:bg-muted/50">
-									<div class="min-w-0 flex-1">
-										<a
-											href={resolve(`/u/${f.user.username}`)}
-											class="block truncate text-sm font-medium hover:underline"
-											>{getDisplayName(f.user)}</a
-										>
-										<div class="text-xs text-foreground/70">@{f.user.username}</div>
-									</div>
-									<div class="flex items-center gap-2">
-										<Button size="sm" href={resolve(`/u/${f.user.username}`)}>View</Button>
-									</div>
+			<ScrollArea class="max-h-96">
+				<ul class="space-y-3">
+					{#each followers as f (f.user.id)}
+						<li>
+							<div class="flex items-center gap-3 rounded-lg p-3 transition hover:bg-muted/50">
+								<div class="min-w-0 flex-1">
+									<a
+										href={resolve(`/u/${f.user.username}`)}
+										class="block truncate text-sm font-medium hover:underline"
+										>{getDisplayName(f.user)}</a
+									>
+									<div class="text-xs text-foreground/70">@{f.user.username}</div>
 								</div>
-							</li>
-						{/each}
-					</ul>
-				</ScrollArea>
-			{:else}
-				<p class="text-sm text-foreground/60">You have no followers yet.</p>
-			{/if}
+								<div class="flex items-center gap-2">
+									<Button size="sm" href={resolve(`/u/${f.user.username}`)}>View</Button>
+								</div>
+							</div>
+						</li>
+					{:else}
+						<p class="text-sm">You have no followers yet.</p>
+					{/each}
+				</ul>
+			</ScrollArea>
 		</Tabs.Content>
 
 		<Tabs.Content value="followings">
 			<h3 class="mb-4 text-lg font-semibold">Following</h3>
-			{#if following && following.length > 0}
-				<ScrollArea class="max-h-96">
-					<ul class="space-y-3">
-						{#each following as f (f.user.id)}
-							<li>
-								<div class="flex items-center gap-3 rounded-lg p-3 transition hover:bg-muted/50">
-									<div class="min-w-0 flex-1">
-										<a
-											href={resolve(`/u/${f.user.username}`)}
-											class="block truncate text-sm font-medium hover:underline"
-											>{getDisplayName(f.user)}</a
-										>
-										<div class="text-xs text-foreground/70">@{f.user.username}</div>
-									</div>
-									<div class="flex items-center gap-2">
-										<Button size="sm">Message</Button>
-										<Button size="sm" variant="destructive">Unfollow</Button>
-									</div>
+			<ScrollArea class="max-h-96">
+				<ul class="space-y-3">
+					{#each following as f (f.user.id)}
+						<li>
+							<div class="flex items-center gap-3 rounded-lg p-3 transition hover:bg-muted/50">
+								<div class="min-w-0 flex-1">
+									<a
+										href={resolve(`/u/${f.user.username}`)}
+										class="block truncate text-sm font-medium hover:underline"
+										>{getDisplayName(f.user)}</a
+									>
+									<div class="text-xs text-foreground/70">@{f.user.username}</div>
 								</div>
-							</li>
-						{/each}
-					</ul>
-				</ScrollArea>
-			{:else}
-				<p class="text-sm text-foreground/60">You are not following anyone yet.</p>
-			{/if}
+								<div class="flex items-center gap-2">
+									<Button size="sm">Message</Button>
+									<Button size="sm" variant="destructive">Unfollow</Button>
+								</div>
+							</div>
+						</li>
+					{:else}
+						<p class="text-sm">You are not following anyone yet.</p>
+					{/each}
+				</ul>
+			</ScrollArea>
 		</Tabs.Content>
 
 		<Tabs.Content value="friends">
 			<h3 class="mb-4 text-lg font-semibold">Friends</h3>
-			{#if friends && friends.length > 0}
-				<ScrollArea class="max-h-96">
-					<ul class="space-y-3">
-						{#each friends as f (f.user.id)}
-							<li>
-								<div class="flex items-center gap-3 rounded-lg p-3 transition hover:bg-muted/50">
-									<div class="min-w-0 flex-1">
-										<a
-											href={resolve(`/u/${f.user.username}`)}
-											class="block truncate text-sm font-medium hover:underline"
-											>{getDisplayName(f.user)}</a
-										>
-										<div class="text-xs text-foreground/70">@{f.user.username}</div>
-									</div>
-									Friends since: {formatMonthYear(f.friends.acceptedAt)}
+			<ScrollArea class="max-h-96">
+				<ul class="space-y-3">
+					{#each friends as f (f.user.id)}
+						<li>
+							<div class="flex items-center gap-3 rounded-lg p-3 transition hover:bg-muted/50">
+								<div class="min-w-0 flex-1">
+									<a
+										href={resolve(`/u/${f.user.username}`)}
+										class="block truncate text-sm font-medium hover:underline"
+										>{getDisplayName(f.user)}</a
+									>
+									<div class="text-xs text-foreground/70">@{f.user.username}</div>
 								</div>
-							</li>
-						{/each}
-					</ul>
-				</ScrollArea>
-			{:else}
-				<p class="text-sm text-foreground/60">No friends yet. Connect with people!</p>
-			{/if}
+								Friends since: {formatMonthYear(f.friends.acceptedAt)}
+							</div>
+						</li>
+					{:else}
+						<p class="text-sm">No friends yet. Connect with people!</p>
+					{/each}
+				</ul>
+			</ScrollArea>
 		</Tabs.Content>
 
 		<Tabs.Content value="pending-friend-requests">
 			<h3 class="mb-4 text-lg font-semibold">Pending Friend Requests</h3>
-			{#if pendingFriendRequests && pendingFriendRequests.length > 0}
-				<ScrollArea class="max-h-96">
-					<ul class="space-y-3">
-						{#each pendingFriendRequests as f (f.user.id)}
-							<li>
-								<div class="flex items-center gap-3 rounded-lg p-3 transition hover:bg-muted/50">
-									<div class="min-w-0 flex-1">
-										<a
-											href={resolve(`/u/${f.user.username}`)}
-											class="block truncate text-sm font-medium hover:underline"
-										>
-											{getDisplayName(f.user)}
-										</a>
-										<div class="text-xs text-foreground/70">@{f.user.username}</div>
-									</div>
-									<div class="flex items-center gap-2">
-										<input
-											type="text"
-											form="friendForm"
-											name="friendRequestId"
-											value={f.user.id}
-											hidden
-										/>
-
-										<Button
-											size="sm"
-											formaction="/u/[username]?/acceptFriendRequest"
-											form="friendForm"
-											type="submit"
-										>
-											Accept
-										</Button>
-
-										<Button size="sm" variant="destructive">Reject</Button>
-									</div>
+			<ScrollArea class="max-h-96">
+				<ul class="space-y-3">
+					{#each pendingFriendRequests as f (f.user.id)}
+						<li>
+							<div class="flex items-center gap-3 rounded-lg p-3 transition hover:bg-muted/50">
+								<div class="min-w-0 flex-1">
+									<a
+										href={resolve(`/u/${f.user.username}`)}
+										class="block truncate text-sm font-medium hover:underline"
+									>
+										{getDisplayName(f.user)}
+									</a>
+									<div class="text-xs text-foreground/70">@{f.user.username}</div>
 								</div>
-							</li>
-						{/each}
-					</ul>
-				</ScrollArea>
-			{:else}
-				<p class="text-sm text-foreground/60">No pending requests.</p>
-			{/if}
+								<div class="flex items-center gap-2">
+									<input
+										type="text"
+										form="friendForm"
+										name="friendRequestId"
+										value={f.user.id}
+										hidden
+									/>
+
+									<Button
+										size="sm"
+										formaction="/u/[username]?/acceptFriendRequest"
+										form="friendForm"
+										type="submit"
+									>
+										Accept
+									</Button>
+
+									<Button size="sm" variant="destructive">Reject</Button>
+								</div>
+							</div>
+						</li>
+					{:else}
+						<p class="text-sm">No pending requests.</p>
+					{/each}
+				</ul>
+			</ScrollArea>
 		</Tabs.Content>
 	</Card>
 </Tabs.Root>

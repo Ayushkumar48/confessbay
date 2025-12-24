@@ -89,37 +89,32 @@
 		Replies ({replies.length})
 	</h4>
 
-	{#if replies.length === 0}
-		<div class="py-8 text-center text-muted-foreground">
-			<p class="text-sm">No replies yet. Be the first to respond!</p>
-		</div>
-	{:else}
-		<div class="space-y-3">
-			{#each replies as reply (reply.id)}
-				<Card.Root class="border-l-4 border-l-primary/20 bg-muted/30 py-3">
-					<Card.Content>
-						<div class="flex items-start gap-3">
-							<Avatar class="h-8 w-8">
-								<AvatarImage src={reply.user?.avatar} alt={reply.user?.username} />
-								<AvatarFallback class="bg-primary/10 text-xs font-semibold text-primary">
-									{getInitials(reply.user ? getDisplayName(reply.user) : 'X')}
-								</AvatarFallback>
-							</Avatar>
+	<div class="space-y-3">
+		{#each replies as reply (reply.id)}
+			<Card.Root class="border-l-4 border-l-primary/20 bg-muted/30 py-3">
+				<Card.Content>
+					<div class="flex items-start gap-3">
+						<Avatar class="h-8 w-8">
+							<AvatarImage src={reply.user?.avatar} alt={reply.user?.username} />
+							<AvatarFallback class="bg-primary/10 text-xs font-semibold text-primary">
+								{getInitials(reply.user ? getDisplayName(reply.user) : 'X')}
+							</AvatarFallback>
+						</Avatar>
 
-							<div class="min-w-0 flex-1">
-								<div class="flex items-center justify-between">
-									<div class="mb-2 flex items-center gap-2">
-										<span class="text-sm font-medium text-foreground">
-											@{reply.user?.username}
-										</span>
-										<span class="text-xs text-muted-foreground">
-											{getTimeAgo(reply.createdAt)}
-										</span>
-									</div>
-									{@render replySideDropdown(reply.id)}
+						<div class="min-w-0 flex-1">
+							<div class="flex items-center justify-between">
+								<div class="mb-2 flex items-center gap-2">
+									<span class="text-sm font-medium text-foreground">
+										@{reply.user?.username}
+									</span>
+									<span class="text-xs text-muted-foreground">
+										{getTimeAgo(reply.createdAt)}
+									</span>
+								</div>
+								{@render replySideDropdown(reply.id)}
 
-									<!-- Will add the functionality later -->
-									<!-- <div>
+								<!-- Will add the functionality later -->
+								<!-- <div>
 										<Button variant="ghost" size="icon-sm" class="hover:text-yellow-400">
 											<ThumbsUp />
 										</Button>
@@ -127,17 +122,20 @@
 											<ThumbsDown />
 										</Button>
 									</div> -->
-								</div>
-								<p class="text-sm leading-relaxed whitespace-pre-wrap text-foreground">
-									{reply.message}
-								</p>
 							</div>
+							<p class="text-sm leading-relaxed whitespace-pre-wrap text-foreground">
+								{reply.message}
+							</p>
 						</div>
-					</Card.Content>
-				</Card.Root>
-			{/each}
-		</div>
-	{/if}
+					</div>
+				</Card.Content>
+			</Card.Root>
+		{:else}
+			<div class="py-8 text-center text-muted-foreground">
+				<p class="text-sm">No replies yet. Be the first to respond!</p>
+			</div>
+		{/each}
+	</div>
 </div>
 
 {#snippet replySideDropdown(replyId: string)}
