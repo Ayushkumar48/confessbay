@@ -98,19 +98,19 @@
 		</div>
 	</div>
 
-	<div>
-		<div class="space-y-4">
-			{#if data?.confessions}
-				{#each data.confessions as confession, i (confession.confession.id)}
-					<ConfessionCard {...confession} currentUserLiked={data.confessions[i].currentUserLiked} />
-				{/each}
-			{/if}
-
-			{#if (data?.confessions?.length ?? 0) === 0}
-				<div class="rounded-xl border border-border bg-card p-6 text-center text-foreground/60">
-					No posts matching your filters. Try selecting another category or college.
-				</div>
-			{/if}
-		</div>
+	<div class="space-y-4">
+		{#if data?.confessions && data.confessions.length > 0}
+			{#each data.confessions as confession, i (confession.confession.id)}
+				<ConfessionCard {...confession} currentUserLiked={data.confessions[i].currentUserLiked} />
+			{/each}
+		{:else if activeCategory !== 'All' || !activeVisibility}
+			<div class="rounded-xl border border-border bg-card p-6 text-center text-foreground/60">
+				No posts matching your filters. Try selecting another category or college.
+			</div>
+		{:else}
+			<div class="flex flex-1 items-center justify-center">
+				<p>Currently, no confession to show.</p>
+			</div>
+		{/if}
 	</div>
 </div>
