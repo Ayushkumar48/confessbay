@@ -3,7 +3,6 @@
 	import * as Tabs from '$lib/components/ui/tabs';
 	import { Button } from '$lib/components/ui/button';
 	import { Card } from '$lib/components/ui/card';
-	import { Separator } from '$lib/components/ui/separator';
 	import { ScrollArea } from '$lib/components/ui/scroll-area';
 	import { formatMonthYear, getDisplayName } from '$lib/utils';
 	import { enhance } from '$app/forms';
@@ -123,8 +122,6 @@
 				<p class="text-sm text-foreground/60">No confessions yet. Start sharing!</p>
 			{/if}
 		</Tabs.Content>
-
-		<Separator class="my-4" />
 
 		<Tabs.Content value="followers">
 			<h3 class="mb-4 text-lg font-semibold">Followers</h3>
