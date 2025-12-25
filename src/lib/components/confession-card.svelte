@@ -28,6 +28,8 @@
 	import { page } from '$app/state';
 	import ShareDialog from './share-dialog.svelte';
 	import { likePost } from '../../routes/(main)/feed/data.remote';
+	import UsernamText from './usernam-text.svelte';
+	import { confessionCategories } from '$lib/shared/frontend-enums';
 
 	let {
 		confession,
@@ -77,11 +79,17 @@
 				<div class="flex flex-col gap-1">
 					{#if !isProfile}
 						<div class="flex items-center gap-2">
-							<span class="font-semibold text-foreground">
-								@{confession.isAnonymous
-									? generateRandomName(confession.id)
-									: confessedFromUser?.username}
-							</span>
+							{#if !confession.isAnonymous && confessedFromUser?.username}
+								<a
+									href={resolve(`/u/${confessedFromUser.username}`)}
+									class="hover:underline decoration-blue-500"
+								>
+									<UsernamText username={confessedFromUser.username} class="font-semibold" />
+								</a>
+							{:else}
+								<UsernamText username={generateRandomName(confession.id)} class="font-semibold" />
+							{/if}
+
 							{#if confession.isAnonymous}
 								<Badge variant="secondary" class="text-xs">🔒 Anonymous</Badge>
 							{/if}
@@ -100,6 +108,7 @@
 						</span>
 						<span>•</span>
 						<Badge variant="outline">
+							{confessionCategories.find((c) => c.label === confession.category)?.icon}
 							{confession.category}
 						</Badge>
 						{#if !isProfile}

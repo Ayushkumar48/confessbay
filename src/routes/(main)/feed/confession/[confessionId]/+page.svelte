@@ -29,11 +29,13 @@
 	import { Spinner } from '$lib/components/ui/spinner/index.js';
 	import { getConfessionWithId } from './data.remote';
 	import { likePost, newReply } from '../../data.remote';
+	import UsernamText from '$lib/components/usernam-text.svelte';
+	import { resolve } from '$app/paths';
 
 	let confession = $state(
 		await getConfessionWithId({
 			userId: page.data.user.id,
-			confessionId: page.params.confessionId
+			confessionId: page.params.confessionId!
 		})
 	);
 	let currentUserLiked = $state(confession.currentUserLiked);
@@ -109,11 +111,24 @@
 
 						<div class="space-y-2">
 							<div class="flex items-center gap-3">
-								<h1 class="text-2xl font-bold text-foreground">
-									@{confession.confession.isAnonymous
-										? generateRandomName(confession.confession.id)
-										: confession.confessedFromUser?.username}
-								</h1>
+								{#if !confession.confession.isAnonymous && confession.confessedFromUser}
+									<a
+										href={resolve(`/u/${confession.confessedFromUser.username}`)}
+										class="hover:underline decoration-blue-500 decoration-2 underline-offset-4"
+									>
+										<UsernamText
+											username={confession.confessedFromUser.username}
+											size="xl"
+											class="font-bold"
+										/>
+									</a>
+								{:else}
+									<UsernamText
+										username={generateRandomName(confession.confession.id)}
+										size="xl"
+										class="font-bold"
+									/>
+								{/if}
 								{#if confession.confession.isAnonymous}
 									<Badge variant="secondary" class="text-xs">🔒 Anonymous</Badge>
 								{/if}
@@ -296,9 +311,7 @@
 										</Avatar>
 										<div class="flex-1 space-y-2">
 											<div class="flex items-center gap-2 text-sm">
-												<span class="font-medium">
-													@{reply.user?.username || 'anonymous'}
-												</span>
+												<UsernamText username={reply.user?.username || 'anonymous'} size="md" />
 												<span class="text-muted-foreground">•</span>
 												<span class="text-muted-foreground">
 													{getTimeAgo(reply.createdAt)}

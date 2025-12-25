@@ -9,6 +9,7 @@
 	import MapPinIcon from '@lucide/svelte/icons/map-pin';
 	import GraduationCapIcon from '@lucide/svelte/icons/graduation-cap';
 	import MessageSquareIcon from '@lucide/svelte/icons/message-square';
+	import UsernamText from '$lib/components/usernam-text.svelte';
 
 	let { user }: { user: User } = $props();
 </script>
@@ -17,7 +18,7 @@
 	<Card.Root>
 		<Card.Content>
 			<div class="mb-4 flex items-center justify-between">
-				<Avatar class="h-16 w-16 overflow-visible border-4 border-white shadow-lg">
+				<Avatar class="size-16 ring-1 ring-gray-300 dark:ring-gray-600">
 					<AvatarImage src={user.avatar} alt={getDisplayName(user)} />
 					<AvatarFallback
 						class="bg-linear-to-br from-primary to-indigo-500 font-semibold text-white"
@@ -42,7 +43,7 @@
 			<div class="space-y-3">
 				<div>
 					<h3 class="text-xl">{getDisplayName(user)}</h3>
-					<p class="text-sm">@{user.username}</p>
+					<UsernamText username={user.username} size="md" />
 				</div>
 
 				<div class="space-y-2">
@@ -50,10 +51,12 @@
 						{user.bio || 'Student sharing thoughts anonymously'}
 					</p>
 
-					<div class="flex items-center gap-1 text-sm text-gray-300">
-						<MapPinIcon class="h-3 w-3" />
-						<span>{user.city}</span>
-					</div>
+					{#if user.city}
+						<div class="flex items-center gap-1 text-sm text-gray-300">
+							<MapPinIcon class="h-3 w-3" />
+							<span>{user.city}</span>
+						</div>
+					{/if}
 				</div>
 
 				<div class="flex justify-center gap-4">

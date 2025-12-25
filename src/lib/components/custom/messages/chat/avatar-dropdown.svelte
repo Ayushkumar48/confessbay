@@ -24,6 +24,7 @@
 	import { buttonVariants } from '$lib/components/ui/button';
 	import { onMount } from 'svelte';
 	import { socketConnection } from '$lib/ws-connection';
+	import UsernamText from '$lib/components/usernam-text.svelte';
 
 	let {
 		currentChatUser,
@@ -41,9 +42,6 @@
 	const initials = $derived(getInitials(displayName));
 	const currentUserId = $derived(page.data.user?.id);
 	const isUser1 = $derived(currentUserId === conversation.userId1);
-	const unreadCount = $derived(
-		isUser1 ? conversation.unreadCountForUser1 : conversation.unreadCountForUser2
-	);
 	const isArchived = $derived(
 		isUser1 ? conversation.isArchivedByUser1 : conversation.isArchivedByUser2
 	);
@@ -213,41 +211,31 @@
 			</div>
 		{/if}
 
-		<div class="px-2 py-3 border-b">
-			<div class="flex items-center gap-3">
-				<Avatar class="h-12 w-12">
-					<AvatarImage src={currentChatUser.avatar} alt="{displayName}'s avatar" />
-					<AvatarFallback
-						class="bg-linear-to-br from-primary to-primary/70 text-primary-foreground"
-					>
-						{initials}
-					</AvatarFallback>
-				</Avatar>
-				<div class="min-w-0 flex-1">
-					<p class="font-semibold text-sm truncate">{displayName}</p>
-					{#if !currentChatUser.anonymous}
-						<p class="text-xs text-muted-foreground truncate">{currentChatUser.email}</p>
-					{/if}
-					<p class="text-xs text-muted-foreground/80 truncate">@{currentChatUser.username}</p>
-				</div>
+		<a
+			class="flex items-center gap-3 px-2 py-3 border-b hover:bg-accent"
+			href={resolve(`/u/${currentChatUser.username}`)}
+			aria-label={`Go to ${currentChatUser.firstName}'s Profile`}
+			title={`Go to ${currentChatUser.firstName}'s Profile`}
+		>
+			<Avatar class="h-12 w-12">
+				<AvatarImage src={currentChatUser.avatar} alt="{displayName}'s avatar" />
+				<AvatarFallback class="bg-linear-to-br from-primary to-primary/70 text-primary-foreground">
+					{initials}
+				</AvatarFallback>
+			</Avatar>
+			<div class="min-w-0 flex-1">
+				<p class="font-semibold text-sm truncate">{displayName}</p>
+				{#if !currentChatUser.anonymous}
+					<p class="text-xs text-muted-foreground truncate">{currentChatUser.email}</p>
+				{/if}
+				<UsernamText username={currentChatUser.username} size="xs" class="truncate" />
 			</div>
-		</div>
+		</a>
 
-		<DropdownMenu.Group>
-			<div class="px-2 py-2 bg-muted/30">
-				<div class="grid grid-cols-2 gap-2 text-center">
-					<div class="py-2 rounded-md bg-background">
-						<MessageSquareIcon class="h-4 w-4 mx-auto mb-1 text-primary" />
-						<p class="text-xs font-semibold">{unreadCount}</p>
-						<p class="text-xs text-muted-foreground">Unread</p>
-					</div>
-					<div class="py-2 rounded-md bg-background">
-						<ClockIcon class="h-4 w-4 mx-auto mb-1 text-primary" />
-						<p class="text-xs font-semibold">{getTimeAgo(currentChatUser.lastSeenAt)}</p>
-						<p class="text-xs text-muted-foreground">Last Active</p>
-					</div>
-				</div>
-			</div>
+		<DropdownMenu.Group class="px-2 py-2 m-2 rounded-md bg-accent">
+			<ClockIcon class="h-4 w-4 mx-auto mb-1 text-primary" />
+			<p class="text-xs text-muted-foreground text-center">Last Active</p>
+			<p class="text-xs font-semibold text-center">{getTimeAgo(currentChatUser.lastSeenAt)}</p>
 		</DropdownMenu.Group>
 
 		<DropdownMenu.Separator />
