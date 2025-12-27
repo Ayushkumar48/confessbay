@@ -1,14 +1,21 @@
 import Redis from 'ioredis';
+import { building } from '$app/environment';
 
-export const dragonfly = new Redis({
-	host: '127.0.0.1',
-	port: 6380
-});
+let dragonfly: Redis | null = null;
 
-dragonfly.on('connect', () => {
-	console.log('🟢 Dragonfly connected');
-});
+if (!building) {
+	dragonfly = new Redis({
+		host: '127.0.0.1',
+		port: 6380
+	});
 
-dragonfly.on('error', (err) => {
-	console.error('🔴 Dragonfly error', err);
-});
+	dragonfly.on('connect', () => {
+		console.log('🟢 Dragonfly connected');
+	});
+
+	dragonfly.on('error', (err) => {
+		console.error('🔴 Dragonfly error', err);
+	});
+}
+
+export { dragonfly };
