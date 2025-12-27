@@ -1,4 +1,5 @@
 import { query } from '$app/server';
+import { verify } from '@node-rs/argon2';
 import { db } from '$lib/server/db';
 import { user } from '$lib/shared';
 import { eq, or } from 'drizzle-orm';
@@ -21,7 +22,12 @@ export const login = query(userSelectSchema, async (input) => {
 				message: 'This account is associated with Google.\nPlease login with Google.'
 			};
 		}
-		const validPassword = await Bun.password.verify(existingUser.password, input.password);
+		const validPassword = await verify(existingUser.password, input.password, {
+			memoryCost: 19456,
+			timeCost: 2,
+			outputLen: 32,
+			parallelism: 1
+		});
 		if (!validPassword) {
 			return { success: false, message: 'Incorrect username or password' };
 		}
