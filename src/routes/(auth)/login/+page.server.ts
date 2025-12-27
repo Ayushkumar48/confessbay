@@ -30,6 +30,6 @@ export const actions = {
 		const session = await auth.createSession(sessionToken, res.user.id);
 		auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
 		event.locals.user = res.user;
-		redirect(308, resolve('/feed'));
+		redirect(303, resolve('/feed'));
 	}
 };
