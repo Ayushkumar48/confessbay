@@ -1,13 +1,13 @@
-import { query } from '$app/server';
+import { command, query } from '$app/server';
 import { verify } from '@node-rs/argon2';
 import { db } from '$lib/server/db';
 import { user } from '$lib/shared';
 import { eq, or } from 'drizzle-orm';
-import { userSelectSchema } from '$lib/client/schema';
+import { loginSchema } from '$lib/client/schema';
 import z from 'zod';
 import { invalidateSession } from '$lib/server/auth';
 
-export const login = query(userSelectSchema, async (input) => {
+export const login = command(loginSchema, async (input) => {
 	try {
 		const [existingUser] = await db
 			.select()

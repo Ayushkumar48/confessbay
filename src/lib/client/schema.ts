@@ -3,7 +3,7 @@ import * as table from '$lib/shared/index';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
 
-const userSelectSchema = z.object({
+const loginSchema = z.object({
 	username: z.string().min(2, { message: 'Username must be at least 2 characters long' }).max(100),
 	password: z.string().min(1, { message: 'Password must not be empty!' }).max(100),
 	remember: z.boolean().default(false)
@@ -47,6 +47,8 @@ const userInsertSchema = baseUserInsertSchema
 		path: ['confirmPassword']
 	});
 
+const signupSchema = userInsertSchema.omit({ id: true });
+
 const confessionsInsertSchema = createInsertSchema(table.confessions, {
 	repliesEnabled: z.boolean().default(true),
 	isAnonymous: z.boolean().default(false),
@@ -86,15 +88,17 @@ const conversationsInsertSchema = createInsertSchema(table.conversations, {
 
 const repliesInsertSchema = createInsertSchema(table.replies);
 
-type UserSelectSchema = typeof userSelectSchema;
+type LoginSchema = typeof loginSchema;
 type UserInsertSchema = typeof userInsertSchema;
+type SignupSchema = typeof signupSchema;
 type ConfessionsInsertSchema = typeof confessionsInsertSchema;
 type RepliesInsertSchema = typeof repliesInsertSchema;
 type ChatsInsertSchema = typeof chatsInsertSchema;
 
 export {
-	userSelectSchema,
+	loginSchema,
 	userInsertSchema,
+	signupSchema,
 	friendsSelectSchema,
 	confessionsInsertSchema,
 	repliesInsertSchema,
@@ -102,8 +106,9 @@ export {
 	conversationsInsertSchema
 };
 export type {
-	UserSelectSchema,
+	LoginSchema,
 	UserInsertSchema,
+	SignupSchema,
 	ConfessionsInsertSchema,
 	RepliesInsertSchema,
 	ChatsInsertSchema

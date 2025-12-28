@@ -1,49 +1,50 @@
 <script lang="ts">
+	import { fly } from 'svelte/transition';
 	import { Button } from '$lib/components/ui/button/index.js';
-	import * as Form from '$lib/components/ui/form/index.js';
 	import * as Card from '$lib/components/ui/card/index.js';
-	import * as Field from '$lib/components/ui/field/index.js';
-	import { Input } from '$lib/components/ui/input/index.js';
-	import * as Select from '$lib/components/ui/select/index.js';
 	import { gender } from '$lib/shared/enums';
-	import DatePicker from './date-picker.svelte';
-	import GoogleLogo from '$lib/assets/icons/google-logo.svelte';
-	import UserEmpty from './user-empty.svelte';
-	import { getLocalTimeZone, today, type CalendarDate } from '@internationalized/date';
-	import { userInsertSchema, type UserInsertSchema } from '$lib/client/schema';
-	import { type SuperValidated, type Infer, superForm } from 'sveltekit-superforms';
-	import { zod4Client } from 'sveltekit-superforms/adapters';
+	import { signupSchema, type SignupSchema } from '$lib/client/schema';
 	import { cn } from '$lib/utils';
-	import { toast } from 'svelte-sonner';
 	import { resolve } from '$app/paths';
 	import MetaLogo from '$lib/assets/icons/meta-logo.svelte';
+	import GoogleLogo from '$lib/assets/icons/google-logo.svelte';
+	import TextInput from './custom/form-fields/text-input.svelte';
+	import SelectInput from './custom/form-fields/select-input.svelte';
+	import DateInput from './custom/form-fields/date-input.svelte';
+	import FileInput from './custom/form-fields/file-input.svelte';
+	import { validateForm } from '$lib/client/validate-form';
+	import { signupSubmit } from '$lib/client/form-submit';
+	import CustomAnimation from './custom-animation.svelte';
+	import FieldSeparator from './ui/field/field-separator.svelte';
+	import type z from 'zod';
 
-	let { data }: { data: { form: SuperValidated<Infer<UserInsertSchema>> } } = $props();
-
-	const form = $derived(
-		superForm(data.form, {
-			validators: zod4Client(userInsertSchema),
-			taintedMessage: 'Are you sure you want to leave?',
-			onUpdated({ form }) {
-				if (form.message.status === 'success') {
-					toast.success(form.message.message);
-				} else {
-					toast.error(form.message.message);
-				}
-			},
-			onResult({ result }) {
-				if (result.type === 'redirect') {
-					window.location.href = result.location;
-				}
-			}
-		})
-	);
-	type FormField = keyof Infer<UserInsertSchema>;
-
-	const { form: formData, enhance } = $derived(form);
+	let form = $state<z.infer<SignupSchema>>({
+		firstName: '',
+		lastName: '',
+		username: '',
+		email: '',
+		password: '',
+		confirmPassword: '',
+		gender: 'Male',
+		dateOfBirth: undefined,
+		city: undefined,
+		phoneNumber: undefined,
+		avatar: undefined as File | undefined
+	});
+	let errors = $state({
+		firstName: [] as string[],
+		lastName: [] as string[],
+		username: [] as string[],
+		email: [] as string[],
+		password: [] as string[],
+		confirmPassword: [] as string[],
+		gender: [] as string[],
+		dateOfBirth: [] as string[],
+		city: [] as string[],
+		phoneNumber: [] as string[],
+		avatar: [] as string[]
+	});
 	let currentStep = $state(1);
-	let dateOfBirth = $state<CalendarDate>(today(getLocalTimeZone()));
-	const selectedGender = $derived($formData.gender ?? 'Select a gender');
 	let avatar = $state<File>();
 
 	function nextStep() {
@@ -55,156 +56,209 @@
 	}
 
 	$effect(() => {
-		$formData.dateOfBirth = dateOfBirth.toString();
 		if (avatar) {
-			$formData.avatar = avatar;
+			form.avatar = avatar;
 		}
 	});
 </script>
 
-<div class="flex flex-col gap-6">
-	<Card.Root class="overflow-hidden p-0">
-		<Card.Content class="grid p-0 md:grid-cols-2">
-			<form
-				class="p-6 md:p-8"
-				method="POST"
-				use:enhance
-				enctype="multipart/form-data"
-				action="?/signup"
-			>
-				<div class="relative min-h-96 w-full">
-					<!-- Step 1 -->
-					<Field.Group class={cn(currentStep !== 1 && 'hidden')}>
-						{@render headerHelper(1)}
-						<Field.Field class="grid grid-cols-2 gap-4">
-							{@render formField('firstName', 'First Name', 'John')}
-							{@render formField('lastName', 'Last Name', 'Doe')}
-						</Field.Field>
-						{@render formField('username', 'Username', 'john_doe')}
-						{@render formField('email', 'Email', 'john_doe@example.com')}
-						<Field.Field>
-							<Field.Field class="grid grid-cols-2 gap-4">
-								{@render formField('password', 'Password', '********', 'password')}
-								{@render formField('confirmPassword', 'Confirm Password', '********', 'password')}
-							</Field.Field>
-							<Field.Description>Must be at least 8 characters long.</Field.Description>
-						</Field.Field>
-						<Field.Field>
-							<Button type="button" onclick={nextStep}>Next</Button>
-						</Field.Field>
+<div
+	class="w-full overflow-hidden text-foreground grid grid-cols-1 lg:grid-cols-2 items-center justify-center p-8 lg:p-16 gap-12 lg:gap-20 min-h-svh"
+>
+	<CustomAnimation />
+	<div in:fly={{ x: 40, duration: 500 }}>
+		<div class="w-full max-w-lg mx-auto">
+			<Card.Root class="overflow-visible p-8">
+				<Card.Header class="text-center mb-6">
+					<h2 class="text-4xl font-[Pacifico] text-foreground mb-2">ConfessBay</h2>
+					<p class="text-base text-muted-foreground">Create your account to get started</p>
+				</Card.Header>
+
+				<Card.Content class="space-y-6">
+					<div class={cn(currentStep !== 1 && 'hidden')} in:fly={{ y: 20, duration: 400 }}>
+						<p class="text-md text-left mb-4">Step 1</p>
+						<div class="grid grid-cols-2 gap-4">
+							<TextInput
+								bind:form
+								bind:errors
+								schema={signupSchema}
+								field="firstName"
+								title="First Name"
+								bind:value={form.firstName}
+								placeholder="John"
+							/>
+							<TextInput
+								bind:form
+								bind:errors
+								schema={signupSchema}
+								field="lastName"
+								title="Last Name"
+								bind:value={form.lastName}
+								placeholder="Doe"
+							/>
+						</div>
+						<TextInput
+							bind:form
+							bind:errors
+							schema={signupSchema}
+							field="username"
+							title="Username"
+							bind:value={form.username}
+							placeholder="john_doe"
+						/>
+						<TextInput
+							bind:form
+							bind:errors
+							schema={signupSchema}
+							field="email"
+							title="Email"
+							bind:value={form.email}
+							placeholder="john_doe@example.com"
+						/>
+						<div class="grid grid-cols-2 gap-4">
+							<TextInput
+								bind:form
+								bind:errors
+								schema={signupSchema}
+								field="password"
+								title="Password"
+								bind:value={form.password}
+								type="password"
+								placeholder="********"
+							/>
+							<TextInput
+								bind:form
+								bind:errors
+								schema={signupSchema}
+								field="confirmPassword"
+								title="Confirm Password"
+								bind:value={form.confirmPassword}
+								type="password"
+								placeholder="********"
+							/>
+						</div>
+						<div class="text-sm text-muted-foreground">Must be at least 8 characters long.</div>
+						<Button type="button" onclick={nextStep} size="lg" class="w-full my-2 py-6">Next</Button
+						>
 						{@render authLogin()}
-					</Field.Group>
+					</div>
 
-					<!-- Step 2 -->
-					<Field.Group class={cn(currentStep !== 2 && 'hidden')}>
-						{@render headerHelper(2)}
-						<Form.Field {form} name="gender">
-							{@render genderSelect()}
-						</Form.Field>
-
-						<Form.Field {form} name="dateOfBirth">
-							<DatePicker bind:dateOfBirth />
-						</Form.Field>
-						{@render formField('city', 'City', 'New York')}
-						{@render formField('phoneNumber', 'Phone Number', '123456789')}
-
-						<Field.Field class="grid grid-cols-2 gap-4">
-							<Button variant="outline" type="button" onclick={prevStep}>Back</Button>
-							<Button type="button" onclick={nextStep}>Next</Button>
-						</Field.Field>
-
+					<div class={cn(currentStep !== 2 && 'hidden')} in:fly={{ y: 20, duration: 400 }}>
+						<p class="text-md text-left mb-4">Step 2</p>
+						<div class="grid grid-cols-2 gap-4">
+							<SelectInput
+								bind:form
+								bind:errors
+								schema={signupSchema}
+								field="gender"
+								title="Gender"
+								bind:value={form.gender}
+								options={gender}
+								placeholder="Select a gender"
+							/>
+							<DateInput
+								bind:form
+								bind:errors
+								schema={signupSchema}
+								field="dateOfBirth"
+								title="Date of Birth"
+								bind:value={form.dateOfBirth}
+							/>
+						</div>
+						<TextInput
+							bind:form
+							bind:errors
+							schema={signupSchema}
+							field="city"
+							title="City"
+							bind:value={form.city}
+							placeholder="New York"
+						/>
+						<TextInput
+							bind:form
+							bind:errors
+							schema={signupSchema}
+							field="phoneNumber"
+							title="Phone Number"
+							bind:value={form.phoneNumber}
+							placeholder="123456789"
+						/>
+						<div class="grid grid-cols-2 gap-4">
+							<Button
+								variant="outline"
+								type="button"
+								onclick={prevStep}
+								size="lg"
+								class="w-full my-2 py-6">Back</Button
+							>
+							<Button type="button" onclick={nextStep} size="lg" class="w-full my-2 py-6">
+								Next</Button
+							>
+						</div>
 						{@render authLogin()}
-					</Field.Group>
+					</div>
 
-					<!-- Step 3 -->
-					<Field.Group class={cn(currentStep !== 3 && 'hidden')}>
-						{@render headerHelper(3)}
-						<Form.Field {form} name="avatar">
-							<Form.Control>
-								{#snippet children({ props })}
-									<Form.Label>Select a profile picture</Form.Label>
-									<UserEmpty bind:image={avatar} {...props} />
-								{/snippet}
-							</Form.Control>
-							<Form.FieldErrors />
-						</Form.Field>
-						<Field.Field class="grid grid-cols-2 gap-4">
-							<Button variant="outline" type="button" class="w-1/2" onclick={prevStep}>Back</Button>
-							<Button type="submit">Create Account</Button>
-						</Field.Field>
-
+					<div class={cn(currentStep !== 3 && 'hidden')} in:fly={{ y: 20, duration: 400 }}>
+						<p class="text-md text-left mb-4">Step 3</p>
+						<FileInput
+							bind:form
+							bind:errors
+							schema={signupSchema}
+							field="avatar"
+							title="Select a profile picture"
+							bind:value={avatar}
+						/>
+						<div class="grid grid-cols-2 gap-4 items-center">
+							<Button
+								variant="outline"
+								type="button"
+								onclick={prevStep}
+								size="lg"
+								class="w-full my-2 py-6">Back</Button
+							>
+							<Button
+								type="button"
+								onclick={async () => {
+									const { valid, errors: nextErrors } = validateForm(form, signupSchema);
+									errors = nextErrors;
+									if (!valid) return;
+									await signupSubmit(form);
+								}}
+								class="w-full my-2 py-6 rounded-full bg-linear-to-r from-indigo-500 to-violet-600 text-white font-semibold text-base"
+							>
+								Create Account
+							</Button>
+						</div>
 						{@render authLogin()}
-					</Field.Group>
-				</div>
-			</form>
-			<div class="relative hidden bg-muted md:block">
-				<img
-					src="https://images.pexels.com/photos/34229770/pexels-photo-34229770.jpeg"
-					alt=""
-					class="absolute inset-0 h-full w-full object-cover dark:brightness-[0.8]"
-				/>
-			</div>
-		</Card.Content>
-	</Card.Root>
-	<Field.Description class="px-6 text-center">
-		By clicking continue, you agree to our <a href="#/">Terms of Service</a>
-		and <a href="#/">Privacy Policy</a>.
-	</Field.Description>
+					</div>
+				</Card.Content>
+
+				<Card.Footer class="text-xs text-muted-foreground text-center mt-4 px-6">
+					<!-- eslint-disable svelte/no-navigation-without-resolve -->
+					By continuing you agree to our <a class="underline" href="/legal/terms">Terms</a> and
+					<a class="underline" href="/legal/privacy">Privacy</a>.
+				</Card.Footer>
+			</Card.Root>
+		</div>
+	</div>
 </div>
 
-{#snippet formField(name: FormField, label: string, placeholder: string, type = 'text')}
-	<Form.Field {form} {name}>
-		<Form.Control>
-			{#snippet children({ props })}
-				<Form.Label>{label}</Form.Label>
-				<Input {...props} bind:value={$formData[name]} {placeholder} {type} />
-			{/snippet}
-		</Form.Control>
-		<Form.FieldErrors />
-	</Form.Field>
-{/snippet}
-
-{#snippet genderSelect()}
-	<Form.Control>
-		{#snippet children({ props })}
-			<Form.Label>Gender</Form.Label>
-			<Select.Root type="single" bind:value={$formData.gender} name={props.name}>
-				<Select.Trigger class="w-full" {...props}>{selectedGender}</Select.Trigger>
-				<Select.Content>
-					{#each gender as option (option)}
-						<Select.Item value={option}>{option}</Select.Item>
-					{/each}
-				</Select.Content>
-			</Select.Root>
-		{/snippet}
-	</Form.Control>
-	<Form.FieldErrors />
-{/snippet}
-
 {#snippet authLogin()}
-	<Field.Separator class="*:data-[slot=field-separator-content]:bg-card">
+	<FieldSeparator class="*:data-[slot=field-separator-content]:bg-card my-4">
 		Or continue with
-	</Field.Separator>
-	<Field.Field class="grid grid-cols-2 gap-4">
-		<Button variant="outline" type="button">
-			<GoogleLogo />
-			<span class="sr-only">Login with Google</span>
+	</FieldSeparator>
+	<div class="flex gap-4">
+		<Button variant="outline" type="button" aria-label="Signup with Google" class="flex-1 h-12">
+			<div class="mr-3"><GoogleLogo /></div>
+			<span>Google</span>
 		</Button>
-		<Button variant="outline" type="button">
-			<MetaLogo />
-			<span class="sr-only">Login with Meta</span>
+		<Button variant="outline" type="button" aria-label="Signup with Meta" class="flex-1 h-12">
+			<div class="mr-3"><MetaLogo /></div>
+			<span>Meta</span>
 		</Button>
-	</Field.Field>
-	<Field.Description class="text-center">
-		Already have an account? <a href={resolve('/login')}>Sign in</a>
-	</Field.Description>
-{/snippet}
-
-{#snippet headerHelper(step: number)}
-	<div class="flex flex-col items-center gap-2 text-center">
-		<h1 class="text-2xl font-bold">Create your account</h1>
 	</div>
-	<div>
-		<p class="text-md text-left">Step {step}</p>
+	<div class="text-center text-sm text-muted-foreground mt-6">
+		Already have an account?
+		<a class="text-primary hover:underline ml-2 font-medium" href={resolve('/login')}>Sign in</a>
 	</div>
 {/snippet}

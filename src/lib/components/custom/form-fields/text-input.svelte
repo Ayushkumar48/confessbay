@@ -43,7 +43,7 @@
 	<Label class="text-base">{title}</Label>
 	<Input
 		bind:value
-		oninput={(e) => handleFieldChange(form, errors, schema, field, e.currentTarget.value)}
+		oninput={() => handleFieldChange(form, errors, schema, field, value)}
 		{type}
 		name={field}
 		{placeholder}

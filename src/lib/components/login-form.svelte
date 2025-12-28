@@ -9,7 +9,7 @@
 	import { resolve } from '$app/paths';
 	import CustomAnimation from './custom-animation.svelte';
 	import FieldSeparator from './ui/field/field-separator.svelte';
-	import { userSelectSchema } from '$lib/client/schema';
+	import { loginSchema } from '$lib/client/schema';
 	import { validateForm } from '$lib/client/validate-form';
 	import TextInput from './custom/form-fields/text-input.svelte';
 	import { loginSubmit } from '$lib/client/form-submit';
@@ -42,7 +42,7 @@
 					<TextInput
 						bind:form
 						{errors}
-						schema={userSelectSchema}
+						schema={loginSchema}
 						field="username"
 						title="Username or Email"
 						bind:value={form.username}
@@ -51,7 +51,7 @@
 					<TextInput
 						bind:form
 						{errors}
-						schema={userSelectSchema}
+						schema={loginSchema}
 						field="password"
 						title="Password"
 						bind:value={form.password}
@@ -73,7 +73,7 @@
 					<div in:fly={{ y: 20, duration: 400, delay: 500 }}>
 						<Button
 							onclick={async () => {
-								const { valid, errors: nextErrors } = validateForm(form, userSelectSchema);
+								const { valid, errors: nextErrors } = validateForm(form, loginSchema);
 								errors = nextErrors;
 								if (!valid) return;
 								await loginSubmit(form);

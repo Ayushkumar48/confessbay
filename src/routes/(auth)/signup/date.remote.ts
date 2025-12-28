@@ -1,13 +1,13 @@
-import { query } from '$app/server';
+import { command } from '$app/server';
 import { hash } from '@node-rs/argon2';
 import { user } from '$lib/shared';
 import { eq, or } from 'drizzle-orm';
 import { generateRandomAvatar, generateUserId } from '$lib/utils';
 import { uploadSvg } from '$lib/server/auth';
 import { db } from '$lib/server/db';
-import { userInsertSchema } from '$lib/client/schema';
+import { signupSchema } from '$lib/client/schema';
 
-export const signup = query(userInsertSchema, async (input) => {
+export const signup = command(signupSchema, async (input) => {
 	try {
 		const [existingUser] = await db
 			.select()
@@ -49,7 +49,10 @@ export const signup = query(userInsertSchema, async (input) => {
 				password: passwordHash
 			})
 			.returning();
-		return { success: true, message: 'Signup successful', user: newUser };
+		return {
+			success: true,
+			userId: newUser.id
+		};
 	} catch (error) {
 		console.error(error);
 		return { success: false, message: 'Signup failed, Internal Server Error' };
