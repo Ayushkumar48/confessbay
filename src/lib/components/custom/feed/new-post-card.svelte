@@ -24,25 +24,27 @@
 		form: SuperValidated<z.infer<ConfessionsInsertSchema>>;
 		confessionPosts: ConfessionWithToAndFrom[];
 	} = $props();
-	const form = superForm(newPostForm, {
-		validators: zod4Client(confessionsInsertSchema),
-		dataType: 'json',
-		onUpdated: ({ form }) => {
-			if (form.valid) {
-				confessionPosts.unshift(form.message.newConfessionPost);
-				toast.success('Successfully posted the confession!');
-			} else {
-				Object.values(form.errors).forEach((errors) => {
-					if (Array.isArray(errors) && errors.length > 0) {
-						toast.error(errors[0]);
-					} else if (typeof errors === 'string') {
-						toast.error(errors);
-					}
-				});
+	const form = $derived(
+		superForm(newPostForm, {
+			validators: zod4Client(confessionsInsertSchema),
+			dataType: 'json',
+			onUpdated: ({ form }) => {
+				if (form.valid) {
+					confessionPosts.unshift(form.message.newConfessionPost);
+					toast.success('Successfully posted the confession!');
+				} else {
+					Object.values(form.errors).forEach((errors) => {
+						if (Array.isArray(errors) && errors.length > 0) {
+							toast.error(errors[0]);
+						} else if (typeof errors === 'string') {
+							toast.error(errors);
+						}
+					});
+				}
 			}
-		}
-	});
-	const { form: formData, enhance } = form;
+		})
+	);
+	const { form: formData, enhance } = $derived(form);
 </script>
 
 <Card.Root>
@@ -72,15 +74,10 @@
 					{/snippet}
 				</Form.Control>
 			</Form.Field>
-			<div class="flex items-center justify-between py-4">
+			<div class="flex items-center gap-x-10 py-4">
 				<EmojiList onEmojiSelect={(emoji) => ($formData.message += emoji)}>
 					{#snippet children({ props })}
-						<Button
-							{...props}
-							class="cursor-pointer ring-1 ring-amber-300"
-							size="sm"
-							variant="ghost"
-						>
+						<Button {...props} class="ring-1 ring-amber-300" size="sm" variant="ghost">
 							<SmilePlusIcon class="fill-amber-300 text-amber-900" />
 							Emojis
 						</Button>
@@ -89,7 +86,7 @@
 				<Form.Field {form} name="images">
 					<Form.Control>
 						{#snippet children({ props })}
-							<Button size="sm" variant="ghost" class="cursor-pointer p-0 ring-1 ring-emerald-300">
+							<Button size="sm" variant="ghost" class="cursor-pointer ring-1 ring-emerald-300">
 								<label
 									class="flex h-full w-full cursor-pointer items-center justify-center gap-x-2 px-2"
 								>
@@ -112,7 +109,7 @@
 				<Form.Field {form} name="video">
 					<Form.Control>
 						{#snippet children({ props })}
-							<Button size="sm" variant="ghost" class="cursor-pointer p-0 ring-1 ring-cyan-300">
+							<Button size="sm" variant="ghost" class="cursor-pointer ring-1 ring-cyan-300">
 								<label
 									class="flex h-full w-full cursor-pointer items-center justify-center gap-x-2 px-2"
 								>

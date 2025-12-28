@@ -14,22 +14,24 @@
 
 	let { data }: { data: { form: SuperValidated<Infer<UserSelectSchema>> } } = $props();
 
-	const form = superForm(data.form, {
-		validators: zod4Client(userSelectSchema),
-		onUpdated({ form }) {
-			if (form.message.status === 'success') {
-				toast.success(form.message.message);
-			} else {
-				toast.error(form.message.message);
+	const form = $derived(
+		superForm(data.form, {
+			validators: zod4Client(userSelectSchema),
+			onUpdated({ form }) {
+				if (form.message.status === 'success') {
+					toast.success(form.message.message);
+				} else {
+					toast.error(form.message.message);
+				}
+			},
+			onResult({ result }) {
+				if (result.type === 'redirect') {
+					window.location.href = result.location;
+				}
 			}
-		},
-		onResult({ result }) {
-			if (result.type === 'redirect') {
-				window.location.href = result.location;
-			}
-		}
-	});
-	const { form: formData, enhance } = form;
+		})
+	);
+	const { form: formData, enhance } = $derived(form);
 </script>
 
 <div class="flex flex-col gap-6">

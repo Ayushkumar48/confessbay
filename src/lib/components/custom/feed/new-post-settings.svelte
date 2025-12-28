@@ -21,7 +21,7 @@
 	import { tick } from 'svelte';
 
 	let { form }: { form: SuperForm<z.infer<ConfessionsInsertSchema>> } = $props();
-	const { form: formData } = form;
+	const { form: formData } = $derived(form);
 	let categoryPopoverOpen = $state(false);
 	const triggerId = useId();
 

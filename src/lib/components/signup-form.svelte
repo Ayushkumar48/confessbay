@@ -20,25 +20,27 @@
 
 	let { data }: { data: { form: SuperValidated<Infer<UserInsertSchema>> } } = $props();
 
-	const form = superForm(data.form, {
-		validators: zod4Client(userInsertSchema),
-		taintedMessage: 'Are you sure you want to leave?',
-		onUpdated({ form }) {
-			if (form.message.status === 'success') {
-				toast.success(form.message.message);
-			} else {
-				toast.error(form.message.message);
+	const form = $derived(
+		superForm(data.form, {
+			validators: zod4Client(userInsertSchema),
+			taintedMessage: 'Are you sure you want to leave?',
+			onUpdated({ form }) {
+				if (form.message.status === 'success') {
+					toast.success(form.message.message);
+				} else {
+					toast.error(form.message.message);
+				}
+			},
+			onResult({ result }) {
+				if (result.type === 'redirect') {
+					window.location.href = result.location;
+				}
 			}
-		},
-		onResult({ result }) {
-			if (result.type === 'redirect') {
-				window.location.href = result.location;
-			}
-		}
-	});
+		})
+	);
 	type FormField = keyof Infer<UserInsertSchema>;
 
-	const { form: formData, enhance } = form;
+	const { form: formData, enhance } = $derived(form);
 	let currentStep = $state(1);
 	let dateOfBirth = $state<CalendarDate>(today(getLocalTimeZone()));
 	const selectedGender = $derived($formData.gender ?? 'Select a gender');

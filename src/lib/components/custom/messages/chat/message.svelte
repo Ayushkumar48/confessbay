@@ -94,7 +94,7 @@
 	function handleDownload() {
 		console.log('Download message:', m.id);
 	}
-
+	// svelte-ignore state_referenced_locally
 	useMessageVisibility(
 		() => messageElement,
 		m.id,
@@ -224,7 +224,7 @@
 			<TrashIcon class="mr-2 h-4 w-4" />
 			{isSender ? 'Delete for everyone' : 'Delete for me'}
 		</Dialog.Trigger>
-		<Dialog.Content class="sm:max-w-[425px]">
+		<Dialog.Content class="sm:max-w-106.25">
 			<Dialog.Header>
 				<Dialog.Title>Delete Message?</Dialog.Title>
 				<Dialog.Description>
