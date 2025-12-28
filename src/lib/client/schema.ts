@@ -5,7 +5,8 @@ import { z } from 'zod';
 
 const userSelectSchema = z.object({
 	username: z.string().min(2, { message: 'Username must be at least 2 characters long' }).max(100),
-	password: z.string().min(1, { message: 'Password must not be empty!' }).max(100)
+	password: z.string().min(1, { message: 'Password must not be empty!' }).max(100),
+	remember: z.boolean().default(false)
 });
 
 const friendsSelectSchema = createSelectSchema(table.friends);

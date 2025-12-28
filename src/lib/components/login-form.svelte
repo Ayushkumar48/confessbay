@@ -1,103 +1,135 @@
 <script lang="ts">
+	import { fly } from 'svelte/transition';
 	import * as Card from '$lib/components/ui/card/index.js';
-	import * as Field from '$lib/components/ui/field/index.js';
-	import * as Form from '$lib/components/ui/form/index.js';
-	import { Input } from '$lib/components/ui/input/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
-	import { resolve } from '$app/paths';
-	import { type SuperValidated, type Infer, superForm } from 'sveltekit-superforms';
-	import { zod4Client } from 'sveltekit-superforms/adapters';
-	import { userSelectSchema, type UserSelectSchema } from '$lib/client/schema';
-	import MetaLogo from '$lib/assets/icons/meta-logo.svelte';
 	import GoogleLogo from '$lib/assets/icons/google-logo.svelte';
-	import { toast } from 'svelte-sonner';
+	import MetaLogo from '$lib/assets/icons/meta-logo.svelte';
+	import { Label } from './ui/label';
+	import { Checkbox } from '$lib/components/ui/checkbox';
+	import { resolve } from '$app/paths';
+	import CustomAnimation from './custom-animation.svelte';
+	import FieldSeparator from './ui/field/field-separator.svelte';
+	import { userSelectSchema } from '$lib/client/schema';
+	import { validateForm } from '$lib/client/validate-form';
+	import TextInput from './custom/form-fields/text-input.svelte';
+	import { loginSubmit } from '$lib/client/form-submit';
 
-	let { data }: { data: { form: SuperValidated<Infer<UserSelectSchema>> } } = $props();
-
-	const form = $derived(
-		superForm(data.form, {
-			validators: zod4Client(userSelectSchema),
-			onUpdated({ form }) {
-				if (form.message.status === 'success') {
-					toast.success(form.message.message);
-				} else {
-					toast.error(form.message.message);
-				}
-			},
-			onResult({ result }) {
-				if (result.type === 'redirect') {
-					window.location.href = result.location;
-				}
-			}
-		})
-	);
-	const { form: formData, enhance } = $derived(form);
+	let form = $state({
+		username: '',
+		password: '',
+		remember: false
+	});
+	let errors = $state({
+		username: [] as string[],
+		password: [] as string[],
+		remember: [] as string[]
+	});
 </script>
 
-<div class="flex flex-col gap-6">
-	<Card.Root class="overflow-hidden p-0">
-		<Card.Content class="grid p-0 md:grid-cols-2">
-			<form class="p-6 md:p-8" method="POST" use:enhance enctype="multipart/form-data">
-				<Field.Group>
-					<div class="flex flex-col items-center gap-2 text-center">
-						<h1 class="text-2xl font-bold">Welcome back</h1>
-						<p class="text-balance text-muted-foreground">Login to your account</p>
+<div
+	class="w-full overflow-hidden text-foreground grid grid-cols-1 lg:grid-cols-2 items-center justify-center p-8 lg:p-16 gap-12 lg:gap-20 min-h-svh"
+>
+	<CustomAnimation />
+	<div in:fly={{ x: 40, duration: 500 }}>
+		<div class="w-full max-w-lg mx-auto">
+			<Card.Root class="overflow-visible p-8">
+				<Card.Header class="text-center mb-6">
+					<h2 class="text-4xl font-[Pacifico] text-foreground mb-2">ConfessBay</h2>
+					<p class="text-base text-muted-foreground">Welcome back — sign in to continue</p>
+				</Card.Header>
+
+				<Card.Content class="space-y-6">
+					<TextInput
+						bind:form
+						{errors}
+						schema={userSelectSchema}
+						field="username"
+						title="Username or Email"
+						bind:value={form.username}
+						placeholder="your_username"
+					/>
+					<TextInput
+						bind:form
+						{errors}
+						schema={userSelectSchema}
+						field="password"
+						title="Password"
+						bind:value={form.password}
+						type="password"
+						placeholder="••••••••"
+					/>
+					<div
+						class="flex items-center justify-between"
+						in:fly={{ y: 20, duration: 400, delay: 400 }}
+					>
+						<div class="flex items-center gap-x-2">
+							<Checkbox id="remember" bind:checked={form.remember} />
+							<Label for="remember">Remember me</Label>
+						</div>
+						<!-- eslint-disable svelte/no-navigation-without-resolve -->
+						<a class="text-sm text-primary hover:underline" href="/forgot">Forgot password?</a>
 					</div>
-					<Form.Field {form} name="username">
-						<Form.Control>
-							{#snippet children({ props })}
-								<Form.Label>Username or Email</Form.Label>
-								<Input {...props} bind:value={$formData.username} placeholder="john_doe" />
-							{/snippet}
-						</Form.Control>
-						<Form.FieldErrors />
-					</Form.Field>
-					<Form.Field {form} name="password">
-						<Form.Control>
-							{#snippet children({ props })}
-								<Form.Label>Password</Form.Label>
-								<Input
-									{...props}
-									bind:value={$formData.password}
-									type="password"
-									placeholder="********"
-								/>
-							{/snippet}
-						</Form.Control>
-						<Form.FieldErrors />
-					</Form.Field>
-					<Field.Field>
-						<Button type="submit">Sign In</Button>
-					</Field.Field>
-					<Field.Separator class="*:data-[slot=field-separator-content]:bg-card">
-						Or continue with
-					</Field.Separator>
-					<Field.Field class="grid grid-cols-2 gap-4">
-						<Button variant="outline" type="button">
-							<GoogleLogo />
-							<span class="sr-only">Login with Google</span>
+
+					<div in:fly={{ y: 20, duration: 400, delay: 500 }}>
+						<Button
+							onclick={async () => {
+								const { valid, errors: nextErrors } = validateForm(form, userSelectSchema);
+								errors = nextErrors;
+								if (!valid) return;
+								await loginSubmit(form);
+							}}
+							class="w-full h-12 rounded-full bg-linear-to-r from-indigo-500 to-violet-600 text-white font-semibold text-base"
+						>
+							Sign in
 						</Button>
-						<Button variant="outline" type="button">
-							<MetaLogo />
-							<span class="sr-only">Login with Meta</span>
+					</div>
+
+					<div in:fly={{ y: 20, duration: 400, delay: 600 }}>
+						<FieldSeparator class="*:data-[slot=field-separator-content]:bg-card my-4">
+							Or continue with
+						</FieldSeparator>
+					</div>
+
+					<div class="flex gap-4" in:fly={{ y: 20, duration: 400, delay: 700 }}>
+						<Button
+							variant="outline"
+							type="button"
+							aria-label="Login with Google"
+							class="flex-1 h-12"
+						>
+							<div class="mr-3"><GoogleLogo /></div>
+							<span>Google</span>
 						</Button>
-					</Field.Field>
-					<Field.Description class="text-center">
-						Don't have an account? <a href={resolve('/signup')}>Sign up</a>
-					</Field.Description>
-				</Field.Group>
-			</form>
-			<div class="relative hidden bg-muted md:block">
-				<img
-					src="https://images.pexels.com/photos/34229770/pexels-photo-34229770.jpeg"
-					alt=""
-					class="absolute inset-0 h-full w-full object-cover dark:brightness-[0.8]"
-				/>
-			</div>
-		</Card.Content>
-	</Card.Root>
-	<Field.Description class="px-6 text-center">
-		By clicking continue, you agree to our <a href="##">Terms of Service</a> and
-		<a href="##">Privacy Policy</a>.
-	</Field.Description>
+						<Button
+							variant="outline"
+							type="button"
+							aria-label="Login with Meta"
+							class="flex-1 h-12"
+						>
+							<div class="mr-3"><MetaLogo /></div>
+							<span>Meta</span>
+						</Button>
+					</div>
+
+					<div
+						class="text-center text-sm text-muted-foreground mt-6"
+						in:fly={{ y: 20, duration: 400, delay: 800 }}
+					>
+						Don't have an account?
+						<a class="text-primary hover:underline ml-2 font-medium" href={resolve('/signup')}
+							>Sign up</a
+						>
+					</div>
+				</Card.Content>
+
+				<div in:fly={{ y: 20, duration: 400, delay: 900 }}>
+					<Card.Footer class="text-xs text-muted-foreground text-center mt-4 px-6">
+						<!-- eslint-disable svelte/no-navigation-without-resolve-->
+						By continuing you agree to our <a class="underline" href="/legal/terms">Terms</a> and
+						<a class="underline" href="/legal/privacy">Privacy</a>.
+					</Card.Footer>
+				</div>
+			</Card.Root>
+		</div>
+	</div>
 </div>

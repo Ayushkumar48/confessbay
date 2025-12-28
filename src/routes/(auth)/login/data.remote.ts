@@ -33,8 +33,7 @@ export const login = query(userSelectSchema, async (input) => {
 		}
 		return {
 			success: true,
-			message: 'Signup successful',
-			user: { ...existingUser, password: null }
+			userId: existingUser.id
 		};
 	} catch (error) {
 		console.error(error);
