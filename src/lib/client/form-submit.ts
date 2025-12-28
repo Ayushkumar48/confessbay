@@ -1,10 +1,10 @@
-import { toast } from 'svelte-sonner';
-import { login } from '../../routes/(auth)/login/data.remote';
-import { signup } from '../../routes/(auth)/signup/date.remote';
-import { goto } from '$app/navigation';
-import { resolve } from '$app/paths';
 import type z from 'zod';
 import type { LoginSchema, SignupSchema } from './schema';
+import { login } from '../../routes/(auth)/login/data.remote';
+import { toast } from 'svelte-sonner';
+import { resolve } from '$app/paths';
+import { goto } from '$app/navigation';
+import { signup } from '../../routes/(auth)/signup/date.remote';
 
 export async function loginSubmit(form: z.infer<LoginSchema>) {
 	const res = await login(form);
@@ -17,6 +17,7 @@ export async function loginSubmit(form: z.infer<LoginSchema>) {
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({ userId: res.userId })
 	});
+	toast.success('Logged In!');
 	goto(resolve('/feed'), { replaceState: true });
 }
 
@@ -31,5 +32,6 @@ export async function signupSubmit(form: z.infer<SignupSchema>) {
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({ userId: res.userId })
 	});
+	toast.success('Account created successfully!');
 	goto(resolve('/feed'), { replaceState: true });
 }

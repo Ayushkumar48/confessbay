@@ -13,11 +13,13 @@
 	import DateInput from './custom/form-fields/date-input.svelte';
 	import FileInput from './custom/form-fields/file-input.svelte';
 	import { validateForm } from '$lib/client/validate-form';
-	import { signupSubmit } from '$lib/client/form-submit';
 	import CustomAnimation from './custom-animation.svelte';
 	import FieldSeparator from './ui/field/field-separator.svelte';
+	import { Slider } from '$lib/components/ui/slider/index.js';
 	import type z from 'zod';
 	import { onMount } from 'svelte';
+	import { signupSubmit } from '$lib/client/form-submit';
+	import { Spinner } from '$lib/components/ui/spinner/index.js';
 
 	let form = $state<z.infer<SignupSchema>>({
 		firstName: '',
@@ -47,6 +49,7 @@
 	});
 	let currentStep = $state(1);
 	let avatar = $state<File>();
+	let loading = $state(false);
 
 	function nextStep() {
 		currentStep++;
@@ -67,29 +70,49 @@
 </script>
 
 <div
-	class="w-full overflow-hidden text-foreground grid grid-cols-1 lg:grid-cols-2 items-center justify-center p-8 lg:p-16 gap-12 lg:gap-20 min-h-svh"
+	class="w-full overflow-hidden text-foreground grid grid-cols-1 lg:grid-cols-2 items-center justify-center p-4 sm:p-6 md:p-8 lg:p-16 gap-6 sm:gap-8 md:gap-12 lg:gap-20 min-h-svh"
 >
 	<CustomAnimation />
-	<div in:fly={{ x: 40, duration: 500 }}>
+	<form
+		in:fly={{ x: 40, duration: 500 }}
+		onsubmit={async (e) => {
+			e.preventDefault();
+			const { valid, errors: nextErrors } = validateForm(form, signupSchema);
+			errors = nextErrors;
+			if (!valid) return;
+			loading = true;
+			try {
+				await signupSubmit(form);
+			} finally {
+				loading = false;
+			}
+		}}
+	>
 		<div class="w-full max-w-lg mx-auto">
-			<Card.Root class="overflow-visible p-8">
-				<Card.Header class="text-center mb-6">
-					<h2 class="text-4xl font-[Pacifico] text-foreground mb-2">ConfessBay</h2>
-					<p class="text-base text-muted-foreground">Create your account to get started</p>
+			<Card.Root class="overflow-visible p-4 sm:p-6 md:p-8">
+				<Card.Header class="text-center mb-2">
+					<h2 class="text-2xl sm:text-3xl md:text-4xl font-[Pacifico] text-foreground mb-2">
+						ConfessBay
+					</h2>
+					<p class="text-sm sm:text-base text-muted-foreground">
+						Create your account to get started
+					</p>
 				</Card.Header>
 
-				<div class="w-full bg-gray-200 rounded-full h-2 mb-6">
-					<div
-						class="bg-primary h-2 rounded-full transition-all duration-300"
-						style="width: {(currentStep / 3) * 100}%"
-					></div>
-				</div>
+				<Slider
+					value={(currentStep / 3) * 100}
+					type="single"
+					disabled
+					class="opacity-100!"
+					childClass="h-3!"
+					showThumb={false}
+				/>
 
 				<Card.Content class="space-y-6">
 					{#if mounted && currentStep === 1}
 						<div transition:slide>
 							<p class="text-md text-left mb-4" in:fly={{ x: 10, duration: 300 }}>Step 1</p>
-							<div class="grid grid-cols-2 gap-4">
+							<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 								<TextInput
 									bind:form
 									bind:errors
@@ -161,7 +184,7 @@
 									type="button"
 									onclick={nextStep}
 									size="lg"
-									class="w-full my-2 py-6 transition-transform duration-200 active:scale-95"
+									class="w-full my-2 py-4 sm:py-6 transition-transform duration-200 active:scale-95"
 								>
 									Next
 								</Button>
@@ -173,7 +196,10 @@
 					{#if currentStep === 2}
 						<div transition:slide>
 							<p class="text-md text-left mb-4" in:fly={{ x: 10, duration: 300 }}>Step 2</p>
-							<div class="grid grid-cols-2 gap-4" in:fly={{ y: 20, duration: 400, delay: 100 }}>
+							<div
+								class="grid grid-cols-1 sm:grid-cols-2 gap-4"
+								in:fly={{ y: 20, duration: 400, delay: 100 }}
+							>
 								<SelectInput
 									bind:form
 									bind:errors
@@ -213,13 +239,16 @@
 								placeholder="123456789"
 								animationDelay={300}
 							/>
-							<div class="grid grid-cols-2 gap-4" in:fly={{ y: 20, duration: 400, delay: 400 }}>
+							<div
+								class="grid grid-cols-1 sm:grid-cols-2 gap-4"
+								in:fly={{ y: 20, duration: 400, delay: 400 }}
+							>
 								<Button
 									variant="outline"
 									type="button"
 									onclick={prevStep}
 									size="lg"
-									class="w-full my-2 py-6 transition-transform duration-200 active:scale-95"
+									class="w-full my-2 py-4 sm:py-6 transition-transform duration-200 active:scale-95"
 								>
 									Back
 								</Button>
@@ -227,7 +256,7 @@
 									type="button"
 									onclick={nextStep}
 									size="lg"
-									class="w-full my-2 py-6 transition-transform duration-200 active:scale-95"
+									class="w-full my-2 py-4 sm:py-6 transition-transform duration-200 active:scale-95"
 								>
 									Next
 								</Button>
@@ -249,7 +278,7 @@
 								animationDelay={100}
 							/>
 							<div
-								class="grid grid-cols-2 gap-4 items-center"
+								class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center"
 								in:fly={{ y: 20, duration: 400, delay: 200 }}
 							>
 								<Button
@@ -257,21 +286,20 @@
 									type="button"
 									onclick={prevStep}
 									size="lg"
-									class="w-full my-2 py-6 transition-transform duration-200 active:scale-95"
+									class="w-full my-2 py-4 sm:py-6 transition-transform duration-200 active:scale-95"
 								>
 									Back
 								</Button>
 								<Button
-									type="button"
-									onclick={async () => {
-										const { valid, errors: nextErrors } = validateForm(form, signupSchema);
-										errors = nextErrors;
-										if (!valid) return;
-										await signupSubmit(form);
-									}}
-									class="w-full my-2 py-6 rounded-full bg-linear-to-r from-indigo-500 to-violet-600 text-white font-semibold text-base transition-transform duration-200 active:scale-95"
+									type="submit"
+									disabled={loading}
+									class="w-full my-2 py-4 sm:py-6 rounded-full bg-linear-to-r from-indigo-500 to-violet-600 text-white font-semibold text-sm sm:text-base transition-transform duration-200 active:scale-95"
 								>
-									Create Account
+									{#if loading}
+										<Spinner class="mr-2" /> Creating Account...
+									{:else}
+										Create Account
+									{/if}
 								</Button>
 							</div>
 							{@render authLogin()}
@@ -279,7 +307,7 @@
 					{/if}
 				</Card.Content>
 
-				<Card.Footer class="text-xs text-muted-foreground text-center mt-4 px-6">
+				<Card.Footer class="text-xs sm:text-sm text-muted-foreground text-center mt-4 px-6">
 					<!-- eslint-disable svelte/no-navigation-without-resolve -->
 					By continuing you agree to our
 					<a class="underline mx-1" href="/legal/terms">Terms</a>
@@ -288,25 +316,35 @@
 				</Card.Footer>
 			</Card.Root>
 		</div>
-	</div>
+	</form>
 </div>
 
 {#snippet authLogin()}
 	<FieldSeparator class="*:data-[slot=field-separator-content]:bg-card my-4">
 		Or continue with
 	</FieldSeparator>
-	<div class="flex gap-4" in:fly={{ y: 20, duration: 400, delay: 500 }}>
-		<Button variant="outline" type="button" aria-label="Signup with Google" class="flex-1 h-12">
+	<div class="flex flex-col sm:flex-row gap-4" in:fly={{ y: 20, duration: 400, delay: 500 }}>
+		<Button
+			variant="outline"
+			type="button"
+			aria-label="Signup with Google"
+			class="flex-1 h-10 sm:h-12"
+		>
 			<div class="mr-3"><GoogleLogo /></div>
 			<span>Google</span>
 		</Button>
-		<Button variant="outline" type="button" aria-label="Signup with Meta" class="flex-1 h-12">
+		<Button
+			variant="outline"
+			type="button"
+			aria-label="Signup with Meta"
+			class="flex-1 h-10 sm:h-12"
+		>
 			<div class="mr-3"><MetaLogo /></div>
 			<span>Meta</span>
 		</Button>
 	</div>
 	<div
-		class="text-center text-sm text-muted-foreground mt-6"
+		class="text-center text-xs sm:text-sm text-muted-foreground mt-6"
 		in:fly={{ y: 20, duration: 400, delay: 500 }}
 	>
 		Already have an account?
