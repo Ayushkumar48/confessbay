@@ -12,6 +12,7 @@
 		value: File | undefined;
 		title: string;
 		class?: string;
+		animationDelay?: number;
 	};
 	type Props = FieldProps<Record<string, unknown>, Record<string, ZodType<unknown>>, string>;
 </script>
@@ -33,7 +34,8 @@
 		field,
 		title,
 		value = $bindable(),
-		class: className
+		class: className,
+		animationDelay = 300
 	}: Props = $props();
 
 	let avatarUrl = $state('');
@@ -56,7 +58,7 @@
 	});
 </script>
 
-<div class="space-y-2" in:fly={{ y: 20, duration: 400 }}>
+<div class="space-y-2" in:fly={{ y: 20, duration: 400, delay: animationDelay }}>
 	<Label class="text-base">{title}</Label>
 	<div class="flex justify-center {className}">
 		<div class="group inline-block cursor-pointer">
@@ -95,5 +97,5 @@
 		</div>
 	</div>
 
-	<Errors bind:errors={errors[field]} />
+	<Errors errors={errors[field]} />
 </div>

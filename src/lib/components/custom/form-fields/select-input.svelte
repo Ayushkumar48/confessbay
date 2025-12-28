@@ -52,5 +52,5 @@
 		</Select.Content>
 	</Select.Root>
 
-	<Errors bind:errors={errors[field]} />
+	<Errors errors={errors[field]} />
 </div>

@@ -116,17 +116,19 @@
 						in:fly={{ y: 20, duration: 400, delay: 800 }}
 					>
 						Don't have an account?
-						<a class="text-primary hover:underline ml-2 font-medium" href={resolve('/signup')}
-							>Sign up</a
-						>
+						<a class="text-primary hover:underline ml-2 font-medium" href={resolve('/signup')}>
+							Sign up
+						</a>
 					</div>
 				</Card.Content>
 
 				<div in:fly={{ y: 20, duration: 400, delay: 900 }}>
 					<Card.Footer class="text-xs text-muted-foreground text-center mt-4 px-6">
 						<!-- eslint-disable svelte/no-navigation-without-resolve-->
-						By continuing you agree to our <a class="underline" href="/legal/terms">Terms</a> and
-						<a class="underline" href="/legal/privacy">Privacy</a>.
+						By continuing you agree to our
+						<a class="underline mx-1" href="/legal/terms">Terms</a>
+						and
+						<a class="underline mx-1" href="/legal/privacy">Privacy</a>.
 					</Card.Footer>
 				</div>
 			</Card.Root>

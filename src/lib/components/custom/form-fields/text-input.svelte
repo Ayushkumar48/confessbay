@@ -14,6 +14,7 @@
 		type?: string;
 		placeholder?: string;
 		class?: string;
+		animationDelay?: number;
 	};
 	type Props = FieldProps<Record<string, unknown>, Record<string, ZodType<unknown>>, string>;
 </script>
@@ -35,11 +36,12 @@
 		value = $bindable(),
 		type = 'text',
 		placeholder = '',
-		class: className
+		class: className,
+		animationDelay = 300
 	}: Props = $props();
 </script>
 
-<div class="space-y-2" in:fly={{ y: 20, duration: 400 }}>
+<div class="space-y-2" in:fly={{ y: 20, duration: 400, delay: animationDelay }}>
 	<Label class="text-base">{title}</Label>
 	<Input
 		bind:value
@@ -53,5 +55,5 @@
 		)}
 	/>
 
-	<Errors bind:errors={errors[field]} />
+	<Errors errors={errors[field]} />
 </div>

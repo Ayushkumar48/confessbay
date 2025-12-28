@@ -15,7 +15,7 @@
 	});
 </script>
 
-<div class="relative flex items-center justify-center h-full">
+<div class="relative items-center justify-center h-full hidden lg:flex -z-50">
 	<div class="relative w-full max-w-250 h-125 lg:h-150 rounded-3xl overflow-visible">
 		<div
 			class="absolute inset-0 bg-linear-to-br from-primary/5 via-accent/5 to-secondary/5 rounded-3xl"
