@@ -1,7 +1,7 @@
 import { query } from '$app/server';
 import { getSvgUrl } from '$lib/server/auth';
 import { db } from '$lib/server/db';
-import { getOtherUser } from '$lib/server/utils';
+import { getOtherUser, groupBy } from '$lib/server/utils';
 import {
 	confessions,
 	followers,
@@ -130,8 +130,8 @@ export const getMyConfessionPosts = query(
 				}
 			}
 
-			const repliesByConfession = Object.groupBy(allReplies, (r) => r.reply.confessionId);
-			const reportsByConfession = Object.groupBy(allReports, (r) => r.confessionId);
+			const repliesByConfession = groupBy(allReplies, (r) => r.reply.confessionId);
+			const reportsByConfession = groupBy(allReports, (r) => r.confessionId);
 
 			const likedIds = new Set<string>(
 				(userLikes ?? []).map((l: { confessionId: string }) => l.confessionId)

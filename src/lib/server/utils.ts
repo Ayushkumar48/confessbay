@@ -16,3 +16,17 @@ export async function getOtherUser(friendUsername?: string, userId?: string) {
 	}
 	return null;
 }
+
+export function groupBy<T, K extends PropertyKey>(
+	arr: T[],
+	getKey: (item: T) => K
+): Record<K, T[]> {
+	return arr.reduce(
+		(acc, item) => {
+			const k = getKey(item);
+			(acc[k] ??= []).push(item);
+			return acc;
+		},
+		{} as Record<K, T[]>
+	);
+}
