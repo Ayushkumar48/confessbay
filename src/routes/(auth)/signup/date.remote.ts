@@ -51,7 +51,8 @@ export const signup = command(signupSchema, async (input) => {
 			.returning();
 		return {
 			success: true,
-			userId: newUser.id
+			userId: newUser.id,
+			user: newUser
 		};
 	} catch (error) {
 		console.error(error);
