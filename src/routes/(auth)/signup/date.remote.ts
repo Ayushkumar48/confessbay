@@ -51,11 +51,10 @@ export const signup = command(signupSchema, async (input) => {
 			.returning();
 		return {
 			success: true,
-			userId: newUser.id,
-			user: newUser
+			userId: newUser.id
 		};
 	} catch (error) {
 		console.error(error);
-		return { success: false, message: 'Signup failed, Internal Server Error' };
+		return { success: false, message: 'Unable to create account, Internal Server Error' };
 	}
 });

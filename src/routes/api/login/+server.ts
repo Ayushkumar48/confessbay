@@ -1,18 +1,13 @@
 import { createSession, generateSessionToken, setSessionTokenCookie } from '$lib/server/auth';
 import { json } from '@sveltejs/kit';
-import { signup } from '../../(auth)/signup/date.remote';
+import { login } from '../../(auth)/login/data.remote.js';
 
 export async function POST(event) {
 	const userData = await event.request.json();
-	const res = await signup(userData);
+	const res = await login(userData);
 
 	if (!res.userId) {
-		return json(
-			{
-				message: res.message
-			},
-			{ status: 400 }
-		);
+		return json({ message: res.message }, { status: 400 });
 	}
 
 	const sessionToken = generateSessionToken();
