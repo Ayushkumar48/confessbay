@@ -1,6 +1,6 @@
 import { createSession, generateSessionToken, setSessionTokenCookie } from '$lib/server/auth';
 import { json } from '@sveltejs/kit';
-import { login } from '../../(auth)/login/data.remote.js';
+import { login } from '../../../(auth)/login/data.remote';
 
 export async function POST(event) {
 	const userData = await event.request.json();

@@ -1,5 +1,5 @@
 <script lang="ts">
-	let { errors }: { errors: string[] } = $props();
+	let { errors = $bindable() }: { errors: string[] } = $props();
 </script>
 
 <ul class="list-disc pl-4 space-y-1">

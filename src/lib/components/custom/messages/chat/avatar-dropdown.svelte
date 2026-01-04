@@ -81,7 +81,6 @@
 	}
 
 	function handleReportUser() {
-		console.log('Report user:', currentChatUser.id);
 		emitChatStats('report');
 	}
 	onMount(() => {

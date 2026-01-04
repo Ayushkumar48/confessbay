@@ -116,17 +116,18 @@ export function deleteSessionTokenCookie(event: RequestEvent) {
 	});
 }
 
-export async function uploadSvg(svgContent: string, fileName: string) {
+export async function uploadSvg(webpData: Buffer, fileName: string) {
 	const params = {
 		Bucket: AWS_S3_BUCKET,
-		Key: `svgs/${fileName}.svg`,
-		Body: svgContent,
-		ContentType: 'image/svg+xml'
+		Key: `avatars/${fileName}.webp`,
+		Body: Buffer.from(webpData),
+		ContentType: 'image/webp',
+		CacheControl: 'public, max-age=31536000'
 	};
 
 	await s3Client.send(new PutObjectCommand(params));
 
-	return `svgs/${fileName}.svg`;
+	return `avatars/${fileName}.webp`;
 }
 
 export async function getSvgUrl(key: string) {

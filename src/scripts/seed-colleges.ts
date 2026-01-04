@@ -51,7 +51,7 @@ async function seedUS() {
 			await db.insert(colleges).values(values).onConflictDoNothing();
 
 			console.log(`Inserted ${values.length}`);
-		} catch (err) {
+		} catch {
 			console.error(`⏭️ Skipping letter ${letter}`);
 		}
 

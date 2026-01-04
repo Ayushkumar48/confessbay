@@ -15,6 +15,7 @@ import UsersIcon from '@lucide/svelte/icons/users';
 import MessageSquareIcon from '@lucide/svelte/icons/message-square';
 import { createAvatar } from '@dicebear/core';
 import { adventurer } from '@dicebear/collection';
+import { toWebp } from '@dicebear/converter';
 
 export const visibilityIconConfig = {
 	Public: { icon: Globe2Icon, color: 'text-green-600', bg: 'bg-green-50' },
@@ -125,11 +126,13 @@ export function generateRandomName(seed: string) {
  * generateRandomAvatar
  * Generates a random avatar image as svg for a given seed.
  */
-export function generateRandomAvatar(seed: string) {
-	return createAvatar(adventurer, {
-		size: 128,
-		seed
-	}).toJson().svg;
+export async function generateRandomAvatar(seed: string): Promise<Buffer> {
+	const avatar = createAvatar(adventurer, {
+		seed,
+		size: 128
+	});
+
+	return Buffer.from(await toWebp(avatar).toArrayBuffer());
 }
 
 /**

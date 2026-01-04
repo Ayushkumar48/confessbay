@@ -38,7 +38,7 @@ export const signup = command(signupSchema, async (input) => {
 		let avatarKey = '';
 		const userId = generateUserId();
 		if (!input.avatar) {
-			avatarKey = await uploadSvg(generateRandomAvatar(userId), userId);
+			avatarKey = await uploadSvg(await generateRandomAvatar(userId), userId);
 		}
 		const [newUser] = await db
 			.insert(user)
