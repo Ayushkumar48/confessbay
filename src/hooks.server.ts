@@ -11,7 +11,7 @@ const handleCORS: Handle = async ({ event, resolve }) => {
 		'http://10.0.2.2:5173',
 		'http://localhost:5173',
 		'https://confessbay.com',
-		'exp://10.41.81.62:8081'
+		'exp://10.186.103.62:8081'
 	];
 
 	if (event.request.method === 'OPTIONS') {

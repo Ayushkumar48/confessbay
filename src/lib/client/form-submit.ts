@@ -4,7 +4,7 @@ import { login } from '../../routes/(auth)/login/data.remote';
 import { toast } from 'svelte-sonner';
 import { resolve } from '$app/paths';
 import { goto } from '$app/navigation';
-import { signup } from '../../routes/(auth)/signup/date.remote';
+import { signup } from '../../routes/(auth)/signup/data.remote';
 
 export async function loginSubmit(form: z.infer<LoginSchema>) {
 	const res = await login(form);

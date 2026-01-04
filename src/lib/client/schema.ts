@@ -12,42 +12,57 @@ const loginSchema = z.object({
 const friendsSelectSchema = createSelectSchema(table.friends);
 const baseUserInsertSchema = createInsertSchema(table.user);
 
-const userInsertSchema = baseUserInsertSchema
-	.extend({
-		firstName: z
-			.string()
-			.min(2, { message: 'First name must be at least 2 characters long' })
-			.max(100, { message: 'First name must be at most 100 characters long' }),
-		lastName: z
-			.string()
-			.min(2, { message: 'Last name must be at least 2 characters long' })
-			.max(100, { message: 'Last name must be at most 100 characters long' }),
-		username: z
-			.string()
-			.min(2, { message: 'Username must be at least 2 characters long' })
-			.max(100, { message: 'Username must be at most 100 characters long' }),
-		email: z.email({ message: 'Invalid email address' }),
-		avatar: z
-			.instanceof(File, { message: 'Please upload a file.' })
-			.refine((f) => f.size <= 10_000_000, 'Max 10 MB upload size.')
-			.optional(),
-		gender: z.enum(gender),
-		dateOfBirth: z.string().optional(),
-		city: z.string().optional(),
-		password: z
-			.string()
-			.min(8, { message: 'Password must be at least 8 characters long' })
-			.refine((val) => /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/.test(val), {
-				message: 'Password must contain at least one letter, one number, and one special character'
-			}),
-		confirmPassword: z.string().min(8).max(100)
-	})
+const userInsertBaseSchema = baseUserInsertSchema.extend({
+	firstName: z
+		.string()
+		.min(2, { message: 'First name must be at least 2 characters long' })
+		.max(100, { message: 'First name must be at most 100 characters long' }),
+
+	lastName: z
+		.string()
+		.min(2, { message: 'Last name must be at least 2 characters long' })
+		.max(100, { message: 'Last name must be at most 100 characters long' }),
+
+	username: z
+		.string()
+		.min(2, { message: 'Username must be at least 2 characters long' })
+		.max(100, { message: 'Username must be at most 100 characters long' }),
+
+	email: z.email({ message: 'Invalid email address' }),
+
+	avatar: z
+		.instanceof(File, { message: 'Please upload a file.' })
+		.refine((f) => f.size <= 10_000_000, 'Max 10 MB upload size.')
+		.optional(),
+
+	gender: z.enum(gender),
+
+	dateOfBirth: z.string().optional(),
+	city: z.string().optional(),
+
+	password: z
+		.string()
+		.min(8, { message: 'Password must be at least 8 characters long' })
+		.refine((val) => /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/.test(val), {
+			message: 'Password must contain at least one letter, one number, and one special character'
+		}),
+
+	confirmPassword: z.string().min(8).max(100)
+});
+const userInsertSchema = userInsertBaseSchema.refine(
+	(data) => data.password === data.confirmPassword,
+	{
+		message: 'Passwords do not match',
+		path: ['confirmPassword']
+	}
+);
+
+const signupSchema = userInsertBaseSchema
+	.omit({ id: true })
 	.refine((data) => data.password === data.confirmPassword, {
 		message: 'Passwords do not match',
 		path: ['confirmPassword']
 	});
-
-const signupSchema = userInsertSchema.omit({ id: true });
 
 const confessionsInsertSchema = createInsertSchema(table.confessions, {
 	repliesEnabled: z.boolean().default(true),
